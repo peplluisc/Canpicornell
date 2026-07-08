@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Can Picornell - Mallorca Villa</title>
+    <script>
+        // Detect browser language and redirect
+        var userLang = navigator.language || navigator.userLanguage; 
+        userLang = userLang.toLowerCase();
+        
+        if (userLang.startsWith('de')) {
+            window.location.href = 'de/';
+        } else if (userLang.startsWith('es') || userLang.startsWith('ca') || userLang.startsWith('gl') || userLang.startsWith('eu')) {
+            window.location.href = 'es/';
+        } else {
+            window.location.href = 'en/'; // English as default
+        }
+    </script>
+</head>
+<body>
+    <p>Redirecting / Redirigiendo / Weiterleitung...</p>
+</body>
+</html>

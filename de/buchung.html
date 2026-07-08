@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buchung & Verfügbarkeit - Can Picornell Mallorca</title>
+    <meta name="description" content="Prüfen Sie freie Tage in unserem mit Airbnb synchronisierten Kalender, berechnen Sie den Preis Ihres Aufenthalts und senden Sie Ihre Buchungsanfrage direkt ab.">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+    <!-- 1. HEADER & NAVIGATION -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo-link">
+                <span class="logo-text">Can Picornell</span>
+            </a>
+            
+            <button class="menu-toggle" id="menu-toggle" aria-label="Menü öffnen" aria-expanded="false">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+
+            <nav class="nav" id="nav">
+                <ul class="nav-list">
+                    <li><a href="index.html" class="nav-link">Startseite</a></li>
+                    <li><a href="buchung.html" class="nav-link active">Buchung</a></li>
+                </ul>
+
+                <div class="lang-selector">
+                    <button class="lang-btn" aria-label="Sprache wählen">
+                        <span>Deutsch</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <ul class="lang-dropdown">
+                        <li class="lang-item"><a href="../es/reserva.html">Español</a></li>
+                        <li class="lang-item"><a href="../en/booking.html">English</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 2. BOOKING SECTION -->
+    <main class="section container">
+        <div class="section-header" style="margin-bottom: 3.5rem;">
+            <span class="section-tag">Belegungskalender</span>
+            <h1 class="section-title">Reisedaten wählen &amp; Angebot berechnen</h1>
+            <p class="section-desc">Wählen Sie Ihre An- und Abreisedaten in den freien (weißen) Tagen aus. Das System berechnet Ihren Aufenthalt basierend auf den Preisen von Airbnb ohne zusätzliche Gebühren.</p>
+        </div>
+
+        <div class="booking-layout">
+            <!-- Left Column: Availability Calendar -->
+            <div>
+                <div class="calendar-box">
+                    <div class="calendar-nav-header">
+                        <button class="calendar-nav-btn" id="cal-prev-btn" aria-label="Vorheriger Monat">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <h3 style="font-family: var(--font-sans); font-size: 1.15rem; font-weight: 500;">Verfügbarkeit</h3>
+                        <button class="calendar-nav-btn" id="cal-next-btn" aria-label="Nächster Monat">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="calendar-months-container" id="calendar-months">
+                        <!-- RENDERED BY JS -->
+                    </div>
+                    
+                    <div class="calendar-error-msg" id="calendar-error-msg"></div>
+                </div>
+            </div>
+
+            <!-- Right Column: Booking Request Form -->
+            <div>
+                <div class="booking-form-card">
+                    <h3 class="booking-form-title">Buchungsanfrage</h3>
+                    
+                    <form id="booking-request-form" action="kontakt.php" method="POST">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="form-checkin" class="form-label">Anreise</label>
+                                <input type="text" id="form-checkin" name="checkin" class="form-input" placeholder="JJJJ-MM-TT" readonly required>
+                            </div>
+                            <div class="form-group">
+                                <label for="form-checkout" class="form-label">Abreise</label>
+                                <input type="text" id="form-checkout" name="checkout" class="form-input" placeholder="JJJJ-MM-TT" readonly required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="form-nights" class="form-label">Nächte</label>
+                                <input type="text" id="form-nights" name="nights" class="form-input" placeholder="0" readonly required>
+                            </div>
+                            <div class="form-group">
+                                <label for="form-guests" class="form-label">Gäste</label>
+                                <select id="form-guests" name="guests" class="form-input" required>
+                                    <option value="1">1 Person</option>
+                                    <option value="2">2 Personen</option>
+                                    <option value="3">3 Personen</option>
+                                    <option value="4">4 Personen</option>
+                                    <option value="5">5 Personen</option>
+                                    <option value="6" selected>6 Personen</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-name" class="form-label">Vollständiger Name</label>
+                            <input type="text" id="form-name" name="name" class="form-input" placeholder="z.B. Max Mustermann" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="form-email" class="form-label">E-Mail</label>
+                                <input type="email" id="form-email" name="email" class="form-input" placeholder="name@domain.de" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="form-phone" class="form-label">Telefon</label>
+                                <input type="tel" id="form-phone" name="phone" class="form-input" placeholder="+49 170 0000000" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-message" class="form-label">Besondere Wünsche / Anmerkungen</label>
+                            <textarea id="form-message" name="message" class="form-input" placeholder="Geben Sie hier an, ob Sie Babybetten, einen Hochstuhl benötigen, Ihre geschätzte Ankunftszeit..."></textarea>
+                        </div>
+
+                        <!-- Hidden fields for prices -->
+                        <input type="hidden" id="form-totalprice" name="totalprice">
+
+                        <!-- Pricing Breakdown Display (filled by JS) -->
+                        <div class="price-breakdown-box" id="price-breakdown-box"></div>
+
+                        <div class="form-checkbox-group">
+                            <input type="checkbox" id="form-terms" class="form-checkbox" required>
+                            <label for="form-terms" class="form-checkbox-label">Ich habe die Buchungsbedingungen gelesen und stimme der Verarbeitung meiner Daten für die Reservierung zu.</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="btn-submit-booking" style="width: 100%;" disabled>
+                            Buchungsanfrage senden
+                        </button>
+
+                        <div class="form-status" id="form-status-msg"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 3. FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h4>Can Picornell</h4>
+                    <p class="footer-desc">Genießen Sie Ihren Traumurlaub auf Mallorca in unserer privaten Finca mit Pool, großen Gärten und modernstem Komfort.</p>
+                </div>
+                <div>
+                    <h5 class="footer-links-title">Navigation</h5>
+                    <ul class="footer-list">
+                        <li class="footer-link-item"><a href="index.html">Startseite</a></li>
+                        <li class="footer-link-item"><a href="buchung.html">Buchung &amp; Belegung</a></li>
+                        <li class="footer-link-item"><a href="https://airbnb.com/h/canpicornell" target="_blank" rel="noopener noreferrer">Auf Airbnb ansehen</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="footer-links-title">Direkter Kontakt</h5>
+                    <ul class="footer-list">
+                        <li class="footer-link-item"><a href="mailto:info@canpicornell.com">info@canpicornell.com</a></li>
+                        <li class="footer-link-item"><a href="tel:+34687474158">+34 687 474 158</a></li>
+                        <li class="footer-link-item"><a href="https://wa.me/34687474158" target="_blank" rel="noopener noreferrer">Direkt über WhatsApp</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 Can Picornell. Alle Rechte vorbehalten. Offizielle Tourismuslizenz.</p>
+                <div class="footer-legal-links">
+                    <a href="#datenschutz">Datenschutz</a>
+                    <a href="#cookies">Cookies</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/calendar.js"></script>
+    
+    <!-- Inline AJAX validation form handler -->
+    <script>
+        const bookingForm = document.getElementById('booking-request-form');
+        const statusMsg = document.getElementById('form-status-msg');
+
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                statusMsg.textContent = 'Anfrage wird gesendet...';
+                statusMsg.className = 'form-status';
+                statusMsg.style.display = 'block';
+
+                const formData = new FormData(bookingForm);
+
+                fetch(bookingForm.getAttribute('action'), {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        statusMsg.textContent = 'Anfrage erfolgreich gesendet! Wir werden uns in Kürze mit Ihnen in Verbindung setzen.';
+                        statusMsg.className = 'form-status success';
+                        bookingForm.reset();
+                        document.getElementById('price-breakdown-box').style.display = 'none';
+                        document.getElementById('btn-submit-booking').disabled = true;
+                    } else {
+                        statusMsg.textContent = data.error || 'Fehler beim Senden der Anfrage. Bitte versuchen Sie es später noch einmal.';
+                        statusMsg.className = 'form-status error';
+                    }
+                })
+                .catch(err => {
+                    statusMsg.textContent = 'Verbindungsfehler. Bitte versuchen Sie es erneut.';
+                    statusMsg.className = 'form-status error';
+                });
+            });
+        }
+    </script>
+</body>
+</html>
