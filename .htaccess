@@ -1,0 +1,16 @@
+# 1. Indicamos al servidor cuál es el archivo principal que debe abrir
+DirectoryIndex index.html
+
+# 2. Desactivamos el listado automático de carpetas (evita Error 403)
+Options -Indexes
+
+# 3. Encendemos el motor de rutas local ignorando el WordPress superior
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /repositories/Canpicornell/
+    
+    # Si intentan buscar un archivo o carpeta que no existe, se queda en el index.html
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . index.html [L]
+</IfModule>
