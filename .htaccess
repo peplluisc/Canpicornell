@@ -4,13 +4,26 @@ DirectoryIndex index.html
 # 2. Desactivamos el listado automático de carpetas (evita Error 403)
 Options -Indexes
 
-# 3. Encendemos el motor de rutas local ignorando el WordPress superior
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteBase /repositories/Canpicornell/
-    
-    # Si intentan buscar un archivo o carpeta que no existe, se queda en el index.html
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule . index.html [L]
+# 3. Reglas de redirección de rutas y reescritura
+RewriteEngine On
+
+# 1. Tu regla personalizada "prueba" adaptada a la nueva ruta
+RewriteRule ^prueba$ repositories/Canpicornell/testrewrite.php [L]
+
+# 2. Si la petición NO ha entrado ya a la subcarpeta Canpicornell...
+RewriteCond %{REQUEST_URI} !^/repositories/Canpicornell/
+
+# 3. Y NO es un archivo o una carpeta real que exista en la raíz...
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# 4. Lo enviamos todo silenciosamente a la nueva web
+RewriteRule ^(.*)$ repositories/Canpicornell/$1 [L]
+
+# 5. Si entran a la raíz limpia de cualquiera de los dos dominios, forzar el index
+RewriteRule ^$ repositories/Canpicornell/index.html [L]
+
+# Optimización de LiteSpeed
+<IfModule Litespeed>
+	SetEnv noabort 1
 </IfModule>
