@@ -210,6 +210,16 @@ img {
     z-index: 1001;
 }
 
+.lang-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -0.6rem;
+    left: 0;
+    right: 0;
+    height: 0.6rem;
+    background: transparent;
+}
+
 .lang-selector:hover .lang-dropdown {
     opacity: 1;
     transform: translateY(0);
@@ -668,6 +678,67 @@ img {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    transition: opacity 0.3s ease, transform 0.3s ease, var(--transition);
+}
+
+.testimonial-card.fade-out {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.testimonials-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.testimonials-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.pagination-btn {
+    background-color: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-primary);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
+.testimonial-stars {
+    color: #FF5A5F; /* Airbnb brand color for rating stars */
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.08em;
 }
 
 .testimonial-quote {
@@ -688,13 +759,11 @@ img {
     width: 45px;
     height: 45px;
     border-radius: 50%;
-    background-color: var(--color-primary);
+    background-color: #FF5A5F; /* Airbnb Brand Color */
     color: #FFFFFF;
-    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-transform: uppercase;
 }
 
 .testimonial-author {
@@ -1123,6 +1192,19 @@ textarea.form-input {
     margin-bottom: 4rem;
 }
 
+.footer-logo-img {
+    height: 85px;
+    width: auto;
+    display: block;
+    margin-bottom: 1.5rem;
+    filter: brightness(0) invert(1);
+    transition: var(--transition);
+}
+
+.footer-logo-img:hover {
+    transform: scale(1.03);
+}
+
 .footer-brand h4 {
     color: #FFFFFF;
     font-size: 1.35rem;
@@ -1177,6 +1259,16 @@ textarea.form-input {
     gap: 1.5rem;
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
+}
+
+.footer-bottom a {
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: underline;
+    transition: var(--transition);
+}
+
+.footer-bottom a:hover {
+    color: #FFFFFF;
 }
 
 .footer-legal-links {
