@@ -1,0 +1,25 @@
+{
+  "seasons": {
+    "high": { "months": [5, 6, 7, 8], "rate": 280, "name_es": "Temporada Alta (Junio - Septiembre)", "name_en": "High Season (June - September)", "name_de": "Hauptsaison (Juni - September)" },
+    "mid": { "months": [3, 4, 9], "rate": 180, "name_es": "Temporada Media (Abril, Mayo, Octubre)", "name_en": "Mid Season (April, May, October)", "name_de": "Nebensaison (April, Mai, Oktober)" },
+    "low": { "months": [0, 1, 2, 10, 11], "rate": 120, "name_es": "Temporada Baja (Noviembre - Marzo)", "name_en": "Low Season (November - March)", "name_de": "Nebensaison (November - März)" }
+  },
+  "cleaning_fee": 120,
+  "min_stay": 3,
+  "deposit_percentage": 30,
+  "second_payment_days_before_checkin": 30,
+  "tourist_tax": {
+    "rate_per_adult_per_night": 2.20,
+    "min_age": 16,
+    "included_in_total": false,
+    "notes_es": "El Impuesto de Turismo Sostenible (EcoTasa) de 2,20€ por adulto (16+ años) y noche no está incluido y se abonará en efectivo el día de la llegada.",
+    "notes_en": "The Sustainable Tourism Tax (EcoTasa) of €2.20 per adult (16+ years) per night is not included and must be paid in cash upon arrival.",
+    "notes_de": "Die nachhaltige Tourismusabgabe (EcoTasa) in Höhe von 2,20 € pro Erwachsenem (ab 16 Jahren) pro Nacht ist nicht inbegriffen und muss bei der Ankunft in bar bezahlt werden."
+  },
+  "cancellation_policy": {
+    "es": "Cancelación gratuita hasta 30 días antes de la llegada.",
+    "en": "Free cancellation up to 30 days before arrival.",
+    "de": "Kostenfreie Stornierung bis 30 Tage vor der Anreise."
+  },
+  "currency": "EUR"
+}

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Get language from HTML tag
+    // 1. Read language from HTML tag
     const lang = document.documentElement.getAttribute('lang') || 'es';
     
     // Translation dictionary
@@ -7,81 +7,104 @@ document.addEventListener('DOMContentLoaded', function() {
         es: {
             months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
             days: ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'],
-            selectCheckIn: 'Selecciona fecha de entrada',
-            selectCheckOut: 'Selecciona fecha de salida',
-            cleaningFee: 'Limpieza',
             nights: 'noches',
             night: 'noche',
-            average: 'promedio',
-            total: 'Total',
+            cleaningFee: 'Gastos de Limpieza',
+            deposit: 'Anticipo para confirmar (30%)',
+            balance: 'Saldo restante',
+            dueDate: 'Fecha límite de saldo',
+            ecoTax: 'Tasa turística (EcoTasa)',
+            ecoTaxPaidLater: 'Se abona a la llegada',
+            total: 'Total Estimado',
+            budgetTitle: 'Resumen de tu estancia',
+            disclaimer: 'Presupuesto sujeto a comprobación final de disponibilidad.',
             overlapError: 'El rango seleccionado contiene días ocupados. Por favor, elige otras fechas.',
-            pastError: 'No puedes reservar fechas pasadas.',
-            invalidRange: 'La fecha de salida debe ser posterior a la de entrada.',
-            priceBreakdown: 'Desglose de tarifa'
+            minStayError: 'La estancia mínima es de {min} noches.',
+            connectionError: 'Error al calcular el presupuesto. Inténtalo de nuevo.',
+            submitting: 'Enviando...',
+            submitBtn: 'Solicitar reserva',
+            emptyFields: 'Por favor, rellena todos los campos obligatorios.',
+            legendAvailable: 'Disponible',
+            legendBooked: 'Ocupado',
+            legendSelected: 'Seleccionado',
+            adult: 'Adulto',
+            adults: 'Adultos',
+            child: 'Niño',
+            children: 'Niños',
+            baby: 'Bebé',
+            babies: 'Bebés'
         },
         en: {
             months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
             days: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'],
-            selectCheckIn: 'Select check-in date',
-            selectCheckOut: 'Select check-out date',
-            cleaningFee: 'Cleaning fee',
             nights: 'nights',
             night: 'night',
-            average: 'average',
-            total: 'Total',
+            cleaningFee: 'Cleaning Fee',
+            deposit: 'Required Deposit (30%)',
+            balance: 'Remaining balance',
+            dueDate: 'Balance due date',
+            ecoTax: 'Tourist tax (EcoTasa)',
+            ecoTaxPaidLater: 'Paid upon arrival',
+            total: 'Estimated Total',
+            budgetTitle: 'Stay summary',
+            disclaimer: 'Quote subject to final availability check.',
             overlapError: 'The selected range overlaps with booked dates. Please choose other dates.',
-            pastError: 'You cannot select dates in the past.',
-            invalidRange: 'Check-out date must be after check-in date.',
-            priceBreakdown: 'Price Breakdown'
+            minStayError: 'The minimum stay is {min} nights.',
+            connectionError: 'Error calculating quote. Please try again.',
+            submitting: 'Submitting...',
+            submitBtn: 'Request booking',
+            emptyFields: 'Please fill in all mandatory fields.',
+            legendAvailable: 'Available',
+            legendBooked: 'Occupied',
+            legendSelected: 'Selected',
+            adult: 'Adult',
+            adults: 'Adults',
+            child: 'Child',
+            children: 'Children',
+            baby: 'Baby',
+            babies: 'Babies'
         },
         de: {
             months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
             days: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
-            selectCheckIn: 'Anreisedatum auswählen',
-            selectCheckOut: 'Abreisedatum auswählen',
-            cleaningFee: 'Reinigung',
             nights: 'Nächte',
             night: 'Nacht',
-            average: 'Schnitt',
-            total: 'Gesamt',
+            cleaningFee: 'Reinigungsgebühr',
+            deposit: 'Erforderliche Anzahlung (30%)',
+            balance: 'Restbetrag',
+            dueDate: 'Restzahlung fällig am',
+            ecoTax: 'Tourismusabgabe (EcoTasa)',
+            ecoTaxPaidLater: 'Bei Ankunft zu zahlen',
+            total: 'Voraussichtlicher Gesamtbetrag',
+            budgetTitle: 'Zusammenfassung des Aufenthalts',
+            disclaimer: 'Angebot unter Vorbehalt der endgültigen Verfügbarkeitsprüfung.',
             overlapError: 'Der gewählte Zeitraum überschneidet sich mit belegten Tagen. Bitte andere Daten wählen.',
-            pastError: 'Daten in der Vergangenheit können nicht ausgewählt werden.',
-            invalidRange: 'Abreisedatum muss nach dem Anreisedatum liegen.',
-            priceBreakdown: 'Preisübersicht'
+            minStayError: 'Der Mindestaufenthalt beträgt {min} Nächte.',
+            connectionError: 'Fehler bei der Angebotsberechnung. Bitte erneut versuchen.',
+            submitting: 'Wird gesendet...',
+            submitBtn: 'Buchung anfragen',
+            emptyFields: 'Bitte füllen Sie alle Pflichtfelder aus.',
+            legendAvailable: 'Verfügbar',
+            legendBooked: 'Belegt',
+            legendSelected: 'Ausgewählt',
+            adult: 'Erwachsener',
+            adults: 'Erwachsene',
+            child: 'Kind',
+            children: 'Kinder',
+            baby: 'Baby',
+            babies: 'Babys'
         }
     };
 
     const t = translations[lang] || translations['es'];
 
-    // Seasonal Pricing Matrix (configured to match Airbnb)
-    // High season: Jun-Sep (5, 6, 7, 8 - 0-indexed)
-    // Mid season: Apr, May, Oct (3, 4, 9)
-    // Low season: Jan, Feb, Mar, Nov, Dec (0, 1, 2, 10, 11)
-    const pricingMatrix = {
-        high: 280, // June - Sept
-        mid: 180,  // Apr, May, Oct
-        low: 120   // Nov - March
-    };
-    
-    const cleaningFee = 120;
-
-    function getNightlyRate(date) {
-        const month = date.getMonth();
-        if (month >= 5 && month <= 8) {
-            return pricingMatrix.high;
-        } else if (month === 3 || month === 4 || month === 9) {
-            return pricingMatrix.mid;
-        } else {
-            return pricingMatrix.low;
-        }
-    }
-
     // State Variables
-    let bookedDates = []; // Array of dates strings 'YYYY-MM-DD'
-    let checkInDate = null; // Date object
-    let checkOutDate = null; // Date object
+    let bookedDates = []; // Format YYYY-MM-DD
+    let checkInDate = null;
+    let checkOutDate = null;
     let currentMonth = new Date().getMonth();
     let currentYear = new Date().getFullYear();
+    let minStay = 3; // Loaded dynamically from config later
 
     // DOM Elements
     const calendarContainer = document.getElementById('calendar-months');
@@ -94,20 +117,47 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalNightsInput = document.getElementById('form-nights');
     const totalPriceInput = document.getElementById('form-totalprice');
     const submitBtn = document.getElementById('btn-submit-booking');
+    const bookingForm = document.getElementById('booking-request-form');
+    const statusMsg = document.getElementById('form-status-msg');
 
-    if (!calendarContainer) return; // Exit if calendar not on page
+    // Guest Inputs
+    const adultsSelect = document.getElementById('form-adults');
+    const childrenSelect = document.getElementById('form-children');
+    const babiesSelect = document.getElementById('form-babies');
+    const csrfInput = document.getElementById('form-csrf');
+
+    // Modal elements
+    const successModal = document.getElementById('success-modal-overlay');
+    const modalReq = document.getElementById('modal-req-number');
+    const modalDates = document.getElementById('modal-dates');
+    const modalGuests = document.getElementById('modal-guests');
+    const modalTotal = document.getElementById('modal-total');
+    const modalEmail = document.getElementById('modal-email');
+
+    if (!calendarContainer) return;
+
+    // Load CSRF Token
+    fetch('../api/get_csrf_token.php', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.csrf_token && csrfInput) {
+                csrfInput.value = data.csrf_token;
+            }
+        })
+        .catch(err => console.error("Error loading CSRF token:", err));
 
     // Fetch availability from iCal proxy
     fetch('../api/ical_proxy.php')
         .then(response => response.json())
         .then(data => {
-            // Expand date ranges into individual booked date strings
             bookedDates = expandBookedRanges(data);
             renderCalendar();
+            renderLegend();
         })
         .catch(err => {
             console.error('Error fetching calendar:', err);
-            renderCalendar(); // Render empty calendar on error
+            renderCalendar();
+            renderLegend();
         });
 
     function expandBookedRanges(ranges) {
@@ -115,9 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ranges.forEach(range => {
             let start = new Date(range.start);
             let end = new Date(range.end);
-            
-            // Loop from start date to end date (excluding checkout day or including depending on how they want)
-            // In vacation rentals, checkout day is free for check-in. So we block start to end-1.
             let current = new Date(start);
             while (current < end) {
                 dates.add(formatDateString(current));
@@ -134,11 +181,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${y}-${m}-${d}`;
     }
 
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+
     function renderCalendar() {
         calendarContainer.innerHTML = '';
+        const monthsToRender = isMobile() ? 1 : 2;
         
-        // Render 2 months side by side
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < monthsToRender; i++) {
             let month = currentMonth + i;
             let year = currentYear;
             if (month > 11) {
@@ -147,7 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             renderMonth(month, year);
         }
-        
         updateNavigationButtons();
     }
 
@@ -155,13 +205,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const monthDiv = document.createElement('div');
         monthDiv.className = 'calendar-month-card';
 
-        // Title: Month + Year
         const header = document.createElement('div');
         header.className = 'calendar-month-header';
         header.innerHTML = `<h4>${t.months[month]} ${year}</h4>`;
         monthDiv.appendChild(header);
 
-        // Day headers (Lu, Ma, Mi...)
         const gridDays = document.createElement('div');
         gridDays.className = 'calendar-grid-days';
         t.days.forEach(day => {
@@ -172,24 +220,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         monthDiv.appendChild(gridDays);
 
-        // Calendar numbers grid
         const gridDates = document.createElement('div');
         gridDates.className = 'calendar-grid-dates';
+        gridDates.setAttribute('role', 'grid');
 
-        // Get first day of month (1-indexed day, 0 = Sunday in JS, we convert to Monday=0)
         let firstDayIndex = new Date(year, month, 1).getDay();
-        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; // Align to Monday index 0
+        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
 
         const totalDays = new Date(year, month + 1, 0).getDate();
 
-        // Empty spaces for previous month
         for (let i = 0; i < firstDayIndex; i++) {
             const emptyCell = document.createElement('span');
             emptyCell.className = 'calendar-day empty';
             gridDates.appendChild(emptyCell);
         }
 
-        // Real day cells
         const today = new Date();
         today.setHours(0,0,0,0);
 
@@ -200,23 +245,40 @@ document.addEventListener('DOMContentLoaded', function() {
             dayCell.className = 'calendar-day';
             dayCell.textContent = d;
             dayCell.dataset.date = dateStr;
+            dayCell.setAttribute('role', 'gridcell');
 
             const isPast = dateObj < today;
             const isBooked = bookedDates.includes(dateStr);
 
             if (isPast) {
                 dayCell.classList.add('disabled', 'past');
+                dayCell.setAttribute('aria-disabled', 'true');
             } else if (isBooked) {
                 dayCell.classList.add('disabled', 'booked');
+                dayCell.setAttribute('aria-disabled', 'true');
+                dayCell.setAttribute('aria-label', `${d} de ${t.months[month]}, reservado`);
             } else {
-                // Interactive day
+                dayCell.setAttribute('tabindex', '0');
+                dayCell.setAttribute('aria-label', `${d} de ${t.months[month]}, disponible`);
+                
+                // Click handler
                 dayCell.addEventListener('click', () => handleDayClick(dateObj));
                 
-                // Highlight range
+                // Keyboard accessibility
+                dayCell.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleDayClick(dateObj);
+                    }
+                });
+
+                // Selection Highlights
                 if (checkInDate && formatDateString(checkInDate) === dateStr) {
                     dayCell.classList.add('selected-start');
+                    dayCell.setAttribute('aria-selected', 'true');
                 } else if (checkOutDate && formatDateString(checkOutDate) === dateStr) {
                     dayCell.classList.add('selected-end');
+                    dayCell.setAttribute('aria-selected', 'true');
                 } else if (checkInDate && checkOutDate && dateObj > checkInDate && dateObj < checkOutDate) {
                     dayCell.classList.add('in-range');
                 }
@@ -229,23 +291,43 @@ document.addEventListener('DOMContentLoaded', function() {
         calendarContainer.appendChild(monthDiv);
     }
 
+    function renderLegend() {
+        let legendBox = document.getElementById('calendar-legend');
+        if (!legendBox) {
+            legendBox = document.createElement('div');
+            legendBox.id = 'calendar-legend';
+            legendBox.style.cssText = 'display:flex; justify-content:center; gap:1.5rem; font-size:0.8rem; color:var(--color-text-muted); margin-top:1rem; flex-wrap:wrap;';
+            calendarContainer.parentNode.appendChild(legendBox);
+        }
+        legendBox.innerHTML = `
+            <div style="display:flex; align-items:center; gap:0.4rem;">
+                <span style="width:12px; height:12px; background-color:#FFFFFF; border:1px solid var(--color-border); border-radius:3px;"></span>
+                <span>${t.legendAvailable}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.4rem;">
+                <span style="width:12px; height:12px; background-color:#E2E8F0; border-radius:3px; position:relative;"><span style="position:absolute; top:50%; left:50%; width:100%; height:1px; background-color:#A0AEC0; transform:translate(-50%,-50%) rotate(-45deg);"></span></span>
+                <span>${t.legendBooked}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.4rem;">
+                <span style="width:12px; height:12px; background-color:var(--color-accent); border-radius:3px;"></span>
+                <span>${t.legendSelected}</span>
+            </div>
+        `;
+    }
+
     function handleDayClick(date) {
         if (!checkInDate || (checkInDate && checkOutDate)) {
-            // First click or resetting range
             checkInDate = date;
             checkOutDate = null;
             clearValidationMessage();
         } else if (checkInDate && !checkOutDate) {
-            // Second click (checkout)
             if (date <= checkInDate) {
-                // Clicking before check-in resets check-in to this date
                 checkInDate = date;
                 checkOutDate = null;
             } else {
-                // Checking for booked date overlap in the selected range
                 if (isOverlap(checkInDate, date)) {
                     showValidationMessage(t.overlapError);
-                    checkInDate = date; // Reset to start here
+                    checkInDate = date;
                     checkOutDate = null;
                 } else {
                     checkOutDate = date;
@@ -273,8 +355,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const today = new Date();
         const minMonth = today.getMonth();
         const minYear = today.getFullYear();
-        
-        // Prevent going to past months
         if (currentYear === minYear && currentMonth === minMonth) {
             prevBtn.disabled = true;
         } else {
@@ -304,6 +384,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Window resize handler to switch between 1 or 2 months responsively
+    window.addEventListener('resize', renderCalendar);
+
     function updateInputFields() {
         if (checkInDate) {
             checkInInput.value = formatDateString(checkInDate);
@@ -321,7 +404,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const diffTime = Math.abs(checkOutDate - checkInDate);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             totalNightsInput.value = diffDays;
-            submitBtn.disabled = false;
         } else {
             totalNightsInput.value = '';
             submitBtn.disabled = true;
@@ -336,49 +418,183 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        let totalAccommodation = 0;
-        let nights = 0;
-        let tempDate = new Date(checkInDate);
-        
-        const nightsBreakdown = []; // Stores individual nightly rates for display
-
-        while (tempDate < checkOutDate) {
-            const rate = getNightlyRate(tempDate);
-            totalAccommodation += rate;
-            nights++;
-            
-            nightsBreakdown.push({
-                date: formatDateString(tempDate),
-                rate: rate
-            });
-
-            tempDate.setDate(tempDate.getDate() + 1);
-        }
-
-        const totalCost = totalAccommodation + cleaningFee;
-        totalPriceInput.value = totalCost;
-
-        // Render HTML for breakdown
+        // Show Skeleton loading pulse
         priceDisplay.style.display = 'block';
+        priceDisplay.innerHTML = `<div class="skeleton-loader"></div>`;
+        submitBtn.disabled = true;
+
+        const payload = {
+            checkin: formatDateString(checkInDate),
+            checkout: formatDateString(checkOutDate),
+            adults: adultsSelect ? parseInt(adultsSelect.value) : 6,
+            children: childrenSelect ? parseInt(childrenSelect.value) : 0,
+            babies: babiesSelect ? parseInt(babiesSelect.value) : 0
+        };
+
+        fetch('../api/calculate_quote.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(err => { throw new Error(err.error || t.connectionError); });
+            }
+            return res.json();
+        })
+        .then(data => {
+            minStay = data.pricing.min_stay || 3;
+            renderQuoteBreakdown(data);
+        })
+        .catch(err => {
+            console.error(err);
+            priceDisplay.innerHTML = `<div style="color:#DC2626; font-size:0.875rem; text-align:center; padding:1rem;">${err.message || t.connectionError}</div>`;
+            submitBtn.disabled = true;
+        });
+    }
+
+    function renderQuoteBreakdown(data) {
+        const pr = data.pricing;
+        totalPriceInput.value = pr.total;
         
-        const avgRate = Math.round(totalAccommodation / nights);
+        // Dynamic labels localized
+        const taxInclusionText = pr.tourist_tax.included_in_total ? '' : ` (${t.ecoTaxPaidLater})`;
         
         priceDisplay.innerHTML = `
-            <div class="price-breakdown-title">${t.priceBreakdown}</div>
-            <div class="price-row">
-                <span>${avgRate}€ x ${nights} ${nights > 1 ? t.nights : t.night}</span>
-                <span>${totalAccommodation}€</span>
-            </div>
-            <div class="price-row">
-                <span>${t.cleaningFee}</span>
-                <span>${cleaningFee}€</span>
-            </div>
-            <hr class="price-divider">
-            <div class="price-row total">
-                <span>${t.total}</span>
-                <span>${totalCost}€</span>
+            <div class="budget-summary-card">
+                <div class="budget-title">${t.budgetTitle}</div>
+                
+                <div class="budget-row">
+                    <span>${data.nights} ${data.nights > 1 ? t.nights : t.night} x ${Math.round(pr.base_accommodation / data.nights)}€</span>
+                    <span>${pr.base_accommodation}€</span>
+                </div>
+                
+                <div class="budget-row">
+                    <span>${t.cleaningFee}</span>
+                    <span>${pr.cleaning_fee}€</span>
+                </div>
+                
+                <div class="budget-row" style="color: #4B5563;">
+                    <span>${t.ecoTax}${taxInclusionText}</span>
+                    <span>${pr.tourist_tax.total}€</span>
+                </div>
+                
+                <div class="budget-row total">
+                    <span>${t.total}</span>
+                    <span>${pr.total}€</span>
+                </div>
+
+                <div class="budget-row highlight">
+                    <span>${t.deposit}</span>
+                    <span>${pr.deposit_required}€</span>
+                </div>
+
+                <div class="budget-row pending" style="margin-top: 0.5rem; padding: 0 0.75rem;">
+                    <span>${t.balance}</span>
+                    <span>${pr.pending_balance}€</span>
+                </div>
+                
+                <div class="budget-row pending" style="padding: 0 0.75rem; font-size: 0.8rem; font-style: italic;">
+                    <span>${t.dueDate}</span>
+                    <span>${pr.balance_due_date}</span>
+                </div>
+
+                <div class="budget-disclaimer">
+                    ${t.disclaimer}
+                </div>
             </div>
         `;
+
+        // Update mobile bar price display
+        const mobilePriceEl = document.getElementById('mobile-bar-price-val');
+        if (mobilePriceEl) {
+            mobilePriceEl.textContent = `Total: ${pr.total}€`;
+        }
+
+        submitBtn.disabled = false;
+    }
+
+    // Trigger budget recalculation when guests selector changes
+    if (adultsSelect) adultsSelect.addEventListener('change', calculateAndDisplayPrice);
+    if (childrenSelect) childrenSelect.addEventListener('change', calculateAndDisplayPrice);
+    if (babiesSelect) babiesSelect.addEventListener('change', calculateAndDisplayPrice);
+
+    // 2. Submit Form Handler
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Client side checks
+            if (!checkInDate || !checkOutDate) {
+                showValidationMessage(t.emptyFields);
+                return;
+            }
+
+            statusMsg.textContent = t.submitting;
+            statusMsg.className = 'form-status';
+            statusMsg.style.display = 'block';
+            submitBtn.disabled = true;
+            submitBtn.textContent = t.submitting;
+
+            // Compile Form parameters
+            const formData = new FormData(bookingForm);
+            
+            // Format dates back for payload safety
+            formData.set('checkin', formatDateString(checkInDate));
+            formData.set('checkout', formatDateString(checkOutDate));
+
+            fetch(bookingForm.getAttribute('action'), {
+                method: 'POST',
+                body: formData,
+                credentials: 'include' // Needed to pass session cookies for CSRF verification
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.error || t.connectionError); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Populate success modal layout
+                    if (modalReq) modalReq.textContent = data.request_number;
+                    if (modalDates) modalDates.textContent = `${data.checkin} — ${data.checkout} (${data.nights} ${data.nights > 1 ? t.nights : t.night})`;
+                    
+                    const adultStr = payloadGuestLabel(data.total_guests, 'adult');
+                    if (modalGuests) modalGuests.textContent = `${data.total_guests} ${adultStr}`;
+                    if (modalTotal) modalTotal.textContent = `${data.estimated_total}€`;
+                    if (modalEmail) modalEmail.textContent = data.guest_email;
+
+                    // Open full success modal card
+                    if (successModal) {
+                        successModal.classList.add('open');
+                    }
+
+                    // Reset form and UI
+                    bookingForm.reset();
+                    checkInDate = null;
+                    checkOutDate = null;
+                    updateInputFields();
+                    calculateAndDisplayPrice();
+                    renderCalendar();
+                    
+                    statusMsg.style.display = 'none';
+                    submitBtn.textContent = t.submitBtn;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                statusMsg.textContent = err.message || t.connectionError;
+                statusMsg.className = 'form-status error';
+                submitBtn.disabled = false;
+                submitBtn.textContent = t.submitBtn;
+            });
+        });
+    }
+
+    function payloadGuestLabel(count, type) {
+        if (count === 1) return t[type];
+        return t[type + 's'];
     }
 
     function showValidationMessage(msg) {

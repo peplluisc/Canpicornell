@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Can Picornell</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #F2F5F1;
+            color: #1E2D30;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .wrapper {
+            background-color: #F2F5F1;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(30, 45, 48, 0.05);
+            overflow: hidden;
+            border: 1px solid #E2E8F0;
+        }
+        .header {
+            background-color: #165D81;
+            padding: 30px;
+            text-align: center;
+        }
+        .header img {
+            max-height: 50px;
+            display: inline-block;
+        }
+        .body {
+            padding: 40px 30px;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+        .body h2 {
+            font-family: Georgia, serif;
+            color: #165D81;
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: normal;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #005780;
+            color: #FFFFFF !important;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 25px 0;
+            text-align: center;
+            font-size: 16px;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background-color: #F8FAFC;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #E2E8F0;
+        }
+        .summary-table th {
+            background-color: #E2E8F0;
+            color: #1E2D30;
+            text-align: left;
+            padding: 12px 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .summary-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 15px;
+        }
+        .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+        .summary-table td.strong {
+            font-weight: bold;
+            color: #165D81;
+        }
+        .footer {
+            background-color: #1E2D30;
+            color: #A0AEC0;
+            padding: 30px;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .footer a {
+            color: #FFFFFF;
+            text-decoration: none;
+        }
+        .footer p {
+            margin: 8px 0;
+        }
+        .disclaimer {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 20px;
+            border-top: 1px solid #E2E8F0;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <!-- White inverted logo for contrast -->
+                <img src="{{BASE_URL}}assets/images/logo.png" alt="Can Picornell">
+            </div>
+            
+            <!-- Body Content -->
+            <div class="body">
+                {{EMAIL_BODY}}
+                
+                {{BOOKING_SUMMARY_TABLE}}
+                
+                {{DISCLAIMER}}
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+                <p>&copy; 2026 Can Picornell. Todos los derechos reservados.</p>
+                <p>Licencia Turística Oficial: <a href="https://www.caib.es/cathosfront/cens?id=92053" target="_blank" rel="noopener noreferrer">ETV/3819</a></p>
+                <p>
+                    <a href="{{BASE_URL}}">Web Oficial</a> | 
+                    <a href="https://airbnb.com/h/canpicornell" target="_blank" rel="noopener noreferrer">Ver en Airbnb</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

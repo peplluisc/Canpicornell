@@ -3,3 +3,14 @@ DirectoryIndex index.html
 
 # 2. Desactivamos el listado automático de carpetas (evita Error 403)
 Options -Indexes
+
+# 3. Proteger archivos sensibles de accesos directos HTTP
+<FilesMatch "\.(env|sqlite|db|json|sql|log)$">
+    Order deny,allow
+    Deny from all
+</FilesMatch>
+
+# 4. Redirecciones amigables para compartir con los huéspedes
+Redirect /como-llegar /es/como-llegar.html
+Redirect /how-to-get-here /en/como-llegar.html
+Redirect /anreise /de/como-llegar.html

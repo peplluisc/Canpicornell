@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to get here - Can Picornell</title>
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.png" type="image/png">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <style>
+        .directions-card {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin-top: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .directions-address {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            background-color: var(--color-bg-alt);
+            padding: 1rem;
+            border-left: 4px solid var(--color-accent);
+            border-radius: 4px;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .nav-btn-group {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        .nav-btn-google {
+            background-color: #4285F4;
+            color: white;
+        }
+        .nav-btn-google:hover {
+            background-color: #357ae8;
+        }
+        .nav-btn-apple {
+            background-color: #000000;
+            color: white;
+        }
+        .nav-btn-apple:hover {
+            background-color: #222222;
+        }
+        .directions-image-container {
+            margin: 2rem 0;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--color-border);
+        }
+        .directions-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .note-box {
+            background-color: #FFFDF5;
+            border: 1px solid #FCD34D;
+            padding: 1.25rem;
+            border-radius: var(--radius-sm);
+            margin: 1.5rem 0;
+            color: #78350F;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. HEADER & NAVIGATION -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo-link">
+                <img src="../assets/images/logo.png" alt="Can Picornell" class="logo-img" height="48">
+            </a>
+            
+            <nav class="nav" id="nav" style="display: flex; align-items: center; justify-content: flex-end; width: auto; margin-left: auto;">
+                <div class="lang-selector">
+                    <button class="lang-btn" aria-label="Select language">
+                        <span>English</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <ul class="lang-dropdown">
+                        <li class="lang-item"><a href="../es/como-llegar.html">Español</a></li>
+                        <li class="lang-item"><a href="../de/como-llegar.html">Deutsch</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 2. DIRECTIONS CONTENT -->
+    <main class="section container" style="max-width: 800px; margin-top: 2rem; margin-bottom: 5rem;">
+        <span class="section-tag" style="text-align: center; display: block;">ARRIVAL INSTRUCTIONS</span>
+        <h1 style="font-family: var(--font-display); font-size: 2.25rem; color: var(--color-primary); margin-bottom: 1.5rem; text-align: center;">How to Get to Can Picornell</h1>
+        <p style="text-align: center; color: var(--color-text-muted); font-size: 1.1rem; margin-bottom: 2rem;">
+            Detailed instructions and visual references to reach the villa without any trouble.
+        </p>
+
+        <div class="directions-card">
+            <h3 style="color: var(--color-primary); margin-bottom: 0.5rem; font-family: var(--font-display);">Official Address</h3>
+            <div class="directions-address">
+                <span>Av. del Cid, 481, 07198 Palma, Balearic Islands, Spain</span>
+            </div>
+
+            <div class="note-box">
+                <strong>⚠️ Important Information about the access street:</strong><br>
+                The side street leading to the estate <strong>does not have an official house number</strong>. Therefore, you should set your GPS navigation system to go to <strong>Avenida del Cid, 481</strong> (which marks the corner of the side entrance street).
+            </div>
+
+            <h3 style="color: var(--color-primary); margin-top: 2rem; margin-bottom: 0.5rem; font-family: var(--font-display);">Direct GPS Navigation</h3>
+            <p style="font-size: 0.95rem; color: var(--color-text-muted);">Click on the button corresponding to your device to launch GPS navigation to the entrance corner:</p>
+            
+            <div class="nav-btn-group">
+                <a href="https://www.google.com/maps/search/?api=1&query=Av.+del+Cid,+481,+07198+Palma,+Illes+Balears" target="_blank" rel="noopener noreferrer" class="nav-btn nav-btn-google">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+                    Open in Google Maps
+                </a>
+                <a href="https://maps.apple.com/?q=Av.+del+Cid,+481,+07198+Palma,+Illes+Balears" target="_blank" rel="noopener noreferrer" class="nav-btn nav-btn-apple">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Open in Apple Maps
+                </a>
+            </div>
+
+            <h3 style="color: var(--color-primary); margin-top: 2.5rem; margin-bottom: 1rem; font-family: var(--font-display); border-top: 1px solid var(--color-border); padding-top: 1.5rem;">Visual Route Guide</h3>
+            
+            <div class="directions-image-container">
+                <img src="../assets/images/como_llegar.jpg" alt="Visual arrival directions to Can Picornell" class="directions-image">
+            </div>
+
+            <h4 style="color: var(--color-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">Step 1: Identify the Corner</h4>
+            <p style="margin-bottom: 1.5rem;">
+                Go to <strong>Avenida del Cid, 481</strong>. When you reach the corner (you will see the corner house with number 481 and a green trash bin next to it), turn into the side street in the direction indicated by the red arrow.
+            </p>
+
+            <h4 style="color: var(--color-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">Step 2: Continue to the Entrance</h4>
+            <p style="margin-bottom: 0;">
+                Continue straight along this street for approximately <strong>220 meters</strong>. Just before reaching the end of the road, on your right-hand side, you will see the black metal gates to <strong>Can Picornell</strong> with its stone sign post.
+            </p>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="index.html" class="btn btn-primary">Back to Home</a>
+        </div>
+    </main>
+
+    <!-- 3. FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="../assets/images/logo.png" alt="Can Picornell" class="footer-logo-img" height="85">
+                    <p class="footer-desc">Enjoy your dream holiday in Mallorca in our traditional private villa with a pool, citrus gardens, and all modern comforts.</p>
+                </div>
+                <div>
+                    <h5 class="footer-links-title">Navigation</h5>
+                    <ul class="footer-list">
+                        <li class="footer-link-item"><a href="index.html">Home</a></li>
+                        <li class="footer-link-item"><a href="booking.html">Availability & Bookings</a></li>
+                        <li class="footer-link-item"><a href="https://airbnb.com/h/canpicornell" target="_blank" rel="noopener noreferrer">View on Airbnb</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="footer-links-title">Direct Contact</h5>
+                    <ul class="footer-list">
+                        <li class="footer-link-item"><a href="mailto:info@canpicornell.com">info@canpicornell.com</a></li>
+                        <li class="footer-link-item"><a href="tel:+34687474158">+34 687 474 158</a></li>
+                        <li class="footer-link-item"><a href="https://wa.me/34687474158" target="_blank" rel="noopener noreferrer">Direct WhatsApp</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 Can Picornell. All rights reserved. Official Tourist License: <a href="https://www.caib.es/cathosfront/cens?id=92053&lang=EN" target="_blank" rel="noopener noreferrer">ETV/3819</a>.</p>
+                <div class="footer-legal-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="cookies.html">Cookies</a>
+                    <a href="legal-notice.html">Legal Notice</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -48,10 +48,39 @@
 
     <!-- 2. BOOKING SECTION -->
     <main class="section container">
-        <div class="section-header" style="margin-bottom: 3.5rem;">
-            <span class="section-tag">Calendario de Ocupación</span>
-            <h1 class="section-title">Elige tus fechas y calcula tu presupuesto</h1>
-            <p class="section-desc">Selecciona tu día de entrada y salida en los días libres (blancos). El sistema calculará tu tarifa según los precios oficiales de Airbnb sin tasas añadidas.</p>
+        <div class="section-header" style="margin-bottom: 3.5rem; text-align: center;">
+            <span class="section-tag">RESERVA DIRECTA Y SEGURA</span>
+            <h1 class="section-title">Consulta tus fechas y reserva directamente con el propietario</h1>
+            <p class="section-desc">Disfruta del mejor precio disponible para reservar Can Picornell directamente, sin comisiones de plataforma. Revisaremos tu solicitud y te enviaremos un enlace de pago seguro para confirmar la estancia.</p>
+            
+            <!-- Franja visual de confianza -->
+            <div class="trust-banner">
+                <div class="trust-badge-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>Licencia turística oficial ETV/3819</span>
+                </div>
+                <div class="trust-badge-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span>4,85/5 en Airbnb</span>
+                </div>
+                <div class="trust-badge-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>151 valoraciones de huéspedes</span>
+                </div>
+                <div class="trust-badge-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    <span>Pago seguro con Visa y Mastercard</span>
+                </div>
+            </div>
+
+            <!-- Botones de cabecera -->
+            <div class="btn-group">
+                <a href="#cal-box-anchor" class="btn btn-primary">Consultar disponibilidad</a>
+                <a href="https://airbnb.com/h/canpicornell" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Ver anuncio oficial en Airbnb
+                </a>
+            </div>
         </div>
 
         <div class="booking-layout">
@@ -74,14 +103,38 @@
                     
                     <div class="calendar-error-msg" id="calendar-error-msg"></div>
                 </div>
+
+                <!-- Tarjeta de confianza de Reserva Directa -->
+                <div class="trust-card">
+                    <h4>¿Por qué reservar directamente?</h4>
+                    <p>Can Picornell es el mismo alojamiento y está gestionado por el mismo propietario que aparece en Airbnb. Reservando directamente evitarás las comisiones de intermediación y recibirás atención personal antes, durante y después de tu estancia.</p>
+                    <ul class="trust-card-list">
+                        <li>Mejor precio directo garantizado</li>
+                        <li>Atención directa con el propietario</li>
+                        <li>Pago protegido mediante una pasarela bancaria segura</li>
+                        <li>Contrato y confirmación por escrito</li>
+                        <li>Asistencia por correo y WhatsApp</li>
+                        <li>Posibilidad de comprobar nuestra trayectoria en Airbnb</li>
+                    </ul>
+                </div>
             </div>
 
             <!-- Right Column: Booking Request Form -->
             <div>
                 <div class="booking-form-card">
-                    <h3 class="booking-form-title">Solicitar Pre-reserva</h3>
+                    <h3 class="booking-form-title">Solicitar reserva</h3>
                     
-                    <form id="booking-request-form" action="contacto.php" method="POST">
+                    <form id="booking-request-form" action="../api/submit_booking.php" method="POST">
+                        <!-- CSRF & Honeypot Protection -->
+                        <input type="hidden" id="form-csrf" name="csrf_token" value="">
+                        <div style="display: none;">
+                            <label for="form-website">Website (Honeypot, leave blank)</label>
+                            <input type="text" id="form-website" name="website" value="">
+                        </div>
+
+                        <!-- Bloque 1: Estancia -->
+                        <h4 style="font-size: 0.95rem; text-transform: uppercase; color: var(--color-primary); margin: 0.5rem 0 0.75rem 0; letter-spacing: 0.5px; border-bottom: 1px solid var(--color-border); padding-bottom: 0.25rem;">1. Estancia</h4>
+                        
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="form-checkin" class="form-label">Entrada</label>
@@ -99,53 +152,129 @@
                                 <input type="text" id="form-nights" name="nights" class="form-input" placeholder="0" readonly required>
                             </div>
                             <div class="form-group">
-                                <label for="form-guests" class="form-label">Huéspedes</label>
-                                <select id="form-guests" name="guests" class="form-input" required>
-                                    <option value="1">1 Persona</option>
-                                    <option value="2">2 Personas</option>
-                                    <option value="3">3 Personas</option>
-                                    <option value="4">4 Personas</option>
-                                    <option value="5">5 Personas</option>
-                                    <option value="6" selected>6 Personas</option>
+                                <label for="form-adults" class="form-label">Adultos (16+ años)</label>
+                                <select id="form-adults" name="adults" class="form-input" required>
+                                    <option value="1">1 Adulto</option>
+                                    <option value="2">2 Adultos</option>
+                                    <option value="3">3 Adultos</option>
+                                    <option value="4">4 Adultos</option>
+                                    <option value="5">5 Adultos</option>
+                                    <option value="6" selected>6 Adultos</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="form-children" class="form-label">Niños (2-15 años)</label>
+                                <select id="form-children" name="children" class="form-input" required>
+                                    <option value="0" selected>0 Niños</option>
+                                    <option value="1">1 Niño</option>
+                                    <option value="2">2 Niños</option>
+                                    <option value="3">3 Niños</option>
+                                    <option value="4">4 Niños</option>
+                                    <option value="5">5 Niños</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="form-babies" class="form-label">Bebés (0-23 meses)</label>
+                                <select id="form-babies" name="babies" class="form-input" required>
+                                    <option value="0" selected>0 Bebés</option>
+                                    <option value="1">1 Bebé</option>
+                                    <option value="2">2 Bebés</option>
+                                    <option value="3">3 Bebés</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="form-name" class="form-label">Nombre Completo</label>
-                            <input type="text" id="form-name" name="name" class="form-input" placeholder="Ej. Juan Pérez" required>
+                            <label for="form-country" class="form-label">País de residencia</label>
+                            <input type="text" id="form-country" name="country" class="form-input" placeholder="Ej. España" required>
+                        </div>
+
+                        <!-- Bloque 2: Datos de contacto -->
+                        <h4 style="font-size: 0.95rem; text-transform: uppercase; color: var(--color-primary); margin: 2rem 0 0.75rem 0; letter-spacing: 0.5px; border-bottom: 1px solid var(--color-border); padding-bottom: 0.25rem;">2. Datos de contacto</h4>
+                        
+                        <div class="form-group">
+                            <label for="form-name" class="form-label">Nombre y apellidos</label>
+                            <input type="text" id="form-name" name="name" class="form-input" placeholder="Ej. Juan Pérez Gómez" required>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="form-email" class="form-label">Email</label>
+                                <label for="form-email" class="form-label">Correo electrónico</label>
                                 <input type="email" id="form-email" name="email" class="form-input" placeholder="nombre@correo.com" required>
                             </div>
                             <div class="form-group">
-                                <label for="form-phone" class="form-label">Teléfono</label>
+                                <label for="form-phone" class="form-label">Teléfono móvil</label>
                                 <input type="tel" id="form-phone" name="phone" class="form-input" placeholder="+34 600 000 000" required>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="form-message" class="form-label">Notas o peticiones especiales</label>
-                            <textarea id="form-message" name="message" class="form-input" placeholder="Indica si necesitas cuna, trona, tu hora aproximada de llegada..."></textarea>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="form-lang-pref" class="form-label">Idioma preferido</label>
+                                <select id="form-lang-pref" name="language" class="form-input" required>
+                                    <option value="es" selected>Español</option>
+                                    <option value="en">English</option>
+                                    <option value="de">Deutsch</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="form-channel-pref" class="form-label">Canal de comunicación</label>
+                                <select id="form-channel-pref" name="contact_channel" class="form-input" required>
+                                    <option value="email" selected>Email</option>
+                                    <option value="whatsapp">WhatsApp</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <!-- Hidden fields for prices -->
+                        <!-- Bloque 3: Información adicional -->
+                        <h4 style="font-size: 0.95rem; text-transform: uppercase; color: var(--color-primary); margin: 2rem 0 0.75rem 0; letter-spacing: 0.5px; border-bottom: 1px solid var(--color-border); padding-bottom: 0.25rem;">3. Información adicional</h4>
+
+                        <div class="form-group">
+                            <label for="form-arrival" class="form-label">Hora estimada de llegada</label>
+                            <input type="text" id="form-arrival" name="arrival_time" class="form-input" placeholder="Ej. 16:30 o Vuelo FR8210 a las 18:00">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-message" class="form-label">Peticiones especiales</label>
+                            <textarea id="form-message" name="special_requests" class="form-input" placeholder="Indica si necesitas cuna, trona, traes mascota, etc."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-discovery" class="form-label">¿Cómo nos conoció? (Opcional)</label>
+                            <input type="text" id="form-discovery" name="how_knew" class="form-input" placeholder="Ej. Recomendación, Instagram, buscador...">
+                        </div>
+
+                        <!-- Hidden fields for pricing calculations -->
                         <input type="hidden" id="form-totalprice" name="totalprice">
 
-                        <!-- Pricing Breakdown Display (filled by JS) -->
+                        <!-- Pricing Breakdown Display (filled by JS skeleton loader) -->
                         <div class="price-breakdown-box" id="price-breakdown-box"></div>
 
-                        <div class="form-checkbox-group">
-                            <input type="checkbox" id="form-terms" class="form-checkbox" required>
-                            <label for="form-terms" class="form-checkbox-label">He leído y acepto las condiciones de reserva y el consentimiento de mis datos para la pre-reserva.</label>
+                        <!-- Casillas de consentimiento legales -->
+                        <div class="form-checkbox-container">
+                            <label class="checkbox-item" for="form-terms">
+                                <input type="checkbox" id="form-terms" name="terms" required>
+                                <span>He leído y acepto las <a href="condiciones-reserva.html" target="_blank">condiciones de reserva y cancelación</a>. *</span>
+                            </label>
+                            <label class="checkbox-item" for="form-privacy">
+                                <input type="checkbox" id="form-privacy" name="privacy" required>
+                                <span>He leído la <a href="privacidad.html" target="_blank">política de privacidad</a> y autorizo el tratamiento de mis datos. *</span>
+                            </label>
+                            <label class="checkbox-item" for="form-newsletter">
+                                <input type="checkbox" id="form-newsletter" name="newsletter">
+                                <span>Deseo recibir novedades y ofertas especiales de Can Picornell.</span>
+                            </label>
                         </div>
 
                         <button type="submit" class="btn btn-primary" id="btn-submit-booking" style="width: 100%;" disabled>
-                            Enviar Solicitud
+                            Solicitar reserva
                         </button>
+                        <p style="font-size: 0.775rem; color: var(--color-text-muted); margin-top: 0.5rem; text-align: center;">
+                            No se realizará ningún cargo al enviar esta solicitud.
+                        </p>
 
                         <div class="form-status" id="form-status-msg"></div>
                     </form>
@@ -183,55 +312,50 @@
             <div class="footer-bottom">
                 <p>&copy; 2026 Can Picornell. Todos los derechos reservados. Licencia turística oficial: <a href="https://www.caib.es/cathosfront/cens?id=92053&lang=ES" target="_blank" rel="noopener noreferrer">ETV/3819</a>.</p>
                 <div class="footer-legal-links">
-                    <a href="#privacidad">Privacidad</a>
-                    <a href="#cookies">Cookies</a>
+                    <a href="privacidad.html">Privacidad</a>
+                    <a href="cookies.html">Cookies</a>
+                    <a href="aviso-legal.html">Aviso Legal</a>
                 </div>
             </div>
         </div>
     </footer>
 
+    <!-- 10. SUCCESS MODAL CARD OVERLAY -->
+    <div class="modal-overlay" id="success-modal-overlay">
+        <div class="success-modal-card">
+            <div class="success-icon-box">✓</div>
+            <h3 class="success-modal-title">Solicitud recibida</h3>
+            <p class="success-modal-desc">Hemos recibido tu solicitud para alojarte en Can Picornell. Comprobaremos la disponibilidad y te enviaremos por correo un presupuesto confirmado y, en su caso, un enlace de pago seguro. La reserva no estará confirmada hasta que recibamos el anticipo.</p>
+            
+            <div class="success-details-list">
+                <li style="list-style:none;"><strong>Número de solicitud:</strong> <span id="modal-req-number">-</span></li>
+                <li style="list-style:none;"><strong>Fechas:</strong> <span id="modal-dates">-</span></li>
+                <li style="list-style:none;"><strong>Huéspedes:</strong> <span id="modal-guests">-</span></li>
+                <li style="list-style:none;"><strong>Importe estimado:</strong> <span id="modal-total">-</span></li>
+                <li style="list-style:none;"><strong>Email de confirmación enviado a:</strong> <span id="modal-email">-</span></li>
+            </div>
+            
+            <div class="success-modal-buttons">
+                <a href="https://wa.me/34687474158" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin: 0; padding: 0.85rem; border-radius: var(--radius-sm); font-weight:600;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    Contactar por WhatsApp
+                </a>
+                <a href="index.html" class="btn-secondary" style="margin: 0; text-align: center; justify-content: center;">Volver al inicio</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. MOBILE STICKY BOOKING BAR -->
+    <div class="mobile-booking-bar" id="mobile-booking-bar">
+        <div class="mobile-bar-price">
+            <span class="mobile-bar-price-val" id="mobile-bar-price-val">Desde 120€</span>
+            <span class="mobile-bar-price-lbl">por noche / precio directo</span>
+        </div>
+        <a href="#cal-box-anchor" class="btn btn-primary" style="margin: 0; padding: 0.65rem 1.25rem; font-size: 0.875rem;">Solicitar reserva</a>
+    </div>
+
     <!-- Scripts -->
     <script src="../assets/js/main.js"></script>
-    <script src="../assets/js/calendar.js"></script>
-    
-    <!-- Inline AJAX validation form handler -->
-    <script>
-        const bookingForm = document.getElementById('booking-request-form');
-        const statusMsg = document.getElementById('form-status-msg');
-
-        if (bookingForm) {
-            bookingForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                statusMsg.textContent = 'Enviando solicitud...';
-                statusMsg.className = 'form-status';
-                statusMsg.style.display = 'block';
-
-                const formData = new FormData(bookingForm);
-
-                fetch(bookingForm.getAttribute('action'), {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        statusMsg.textContent = '¡Solicitud enviada con éxito! Nos pondremos en contacto contigo en breve para confirmar.';
-                        statusMsg.className = 'form-status success';
-                        bookingForm.reset();
-                        document.getElementById('price-breakdown-box').style.display = 'none';
-                        document.getElementById('btn-submit-booking').disabled = true;
-                    } else {
-                        statusMsg.textContent = data.error || 'Hubo un error al enviar. Por favor, inténtalo más tarde.';
-                        statusMsg.className = 'form-status error';
-                    }
-                })
-                .catch(err => {
-                    statusMsg.textContent = 'Error de conexión. Inténtalo de nuevo.';
-                    statusMsg.className = 'form-status error';
-                });
-            });
-        }
-    </script>
+    <script src="../assets/js/calendar.js?v=1.2"></script>
 </body>
 </html>
