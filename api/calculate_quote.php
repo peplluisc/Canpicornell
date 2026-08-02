@@ -68,7 +68,10 @@ $diff_seconds = $checkout_time - $checkin_time;
 $nights = round($diff_seconds / (60 * 60 * 24));
 
 // Load configuration
-$config_file = __DIR__ . '/booking_config.json';
+$config_file = __DIR__ . '/configuracion_precios.json';
+if (!file_exists($config_file)) {
+    $config_file = __DIR__ . '/booking_config.json';
+}
 if (!file_exists($config_file)) {
     send_error("Error de configuración en el servidor.", 500);
 }
@@ -77,10 +80,15 @@ if (!$config) {
     send_error("Error al cargar la configuración de precios.", 500);
 }
 
-// Validate min stay
-$min_stay = isset($config['min_stay']) ? intval($config['min_stay']) : 3;
+// Validate min and max stay
+$min_stay = isset($config['reglas_estancia']['minimo_noches']) ? intval($config['reglas_estancia']['minimo_noches']) : (isset($config['min_stay']) ? intval($config['min_stay']) : 5);
+$max_stay = isset($config['reglas_estancia']['maximo_noches']) ? intval($config['reglas_estancia']['maximo_noches']) : (isset($config['max_stay']) ? intval($config['max_stay']) : 30);
+
 if ($nights < $min_stay) {
     send_error("La estancia mínima es de {$min_stay} noches.");
+}
+if ($nights > $max_stay) {
+    send_error("La estancia máxima es de {$max_stay} noches.");
 }
 
 // Validate guest limits (max 6 guests excluding babies)
@@ -92,28 +100,42 @@ if ($total_guests > 6) {
     send_error("La capacidad máxima de Can Picornell es de 6 personas.");
 }
 
-// Calculate accommodation price day by day (seasonal pricing)
-$total_accommodation = 0;
+// Build daily prices lookup map if available
+$daily_prices_map = [];
+if (isset($config['precios_diarios']) && is_array($config['precios_diarios'])) {
+    foreach ($config['precios_diarios'] as $pd) {
+        if (isset($pd['fecha']) && isset($pd['precio'])) {
+            $daily_prices_map[$pd['fecha']] = floatval($pd['precio']);
+        }
+    }
+}
+
+// Calculate accommodation price day by day
+$base_accommodation = 0;
 $temp_time = $checkin_time;
-$seasons = $config['seasons'];
+$seasons = isset($config['seasons']) ? $config['seasons'] : [];
 $nightly_breakdown = [];
 
 while ($temp_time < $checkout_time) {
     $temp_date = date('Y-m-d', $temp_time);
     $month = intval(date('n', $temp_time)) - 1; // 0-indexed month
     
-    $rate = 120; // default low season
-    $season_name = 'low';
-    
-    foreach ($seasons as $key => $season) {
-        if (in_array($month, $season['months'])) {
-            $rate = $season['rate'];
-            $season_name = $key;
-            break;
+    if (isset($daily_prices_map[$temp_date])) {
+        $rate = $daily_prices_map[$temp_date];
+        $season_name = 'especifico';
+    } else {
+        $rate = 120; // default low season
+        $season_name = 'low';
+        foreach ($seasons as $key => $season) {
+            if (in_array($month, $season['months'])) {
+                $rate = $season['rate'];
+                $season_name = $key;
+                break;
+            }
         }
     }
     
-    $total_accommodation += $rate;
+    $base_accommodation += $rate;
     $nightly_breakdown[] = [
         "date" => $temp_date,
         "rate" => $rate,
@@ -122,6 +144,33 @@ while ($temp_time < $checkout_time) {
     
     $temp_time = strtotime("+1 day", $temp_time);
 }
+
+// Calculate non-cumulative discount (highest percentage applicable)
+$discount_pct = 0;
+$discount_type = null;
+
+if (isset($config['descuentos']['reglas']) && is_array($config['descuentos']['reglas'])) {
+    foreach ($config['descuentos']['reglas'] as $rule) {
+        if ($nights >= intval($rule['noches_minimas'])) {
+            $rule_pct = floatval($rule['porcentaje']);
+            if ($rule_pct > $discount_pct) {
+                $discount_pct = $rule_pct;
+                $discount_type = $rule['tipo'];
+            }
+        }
+    }
+} else {
+    if ($nights >= 28) {
+        $discount_pct = 12;
+        $discount_type = 'mensual';
+    } elseif ($nights >= 7) {
+        $discount_pct = 3;
+        $discount_type = 'semanal';
+    }
+}
+
+$discount_amount = round(($base_accommodation * $discount_pct) / 100, 2);
+$total_accommodation = $base_accommodation - $discount_amount;
 
 $cleaning_fee = isset($config['cleaning_fee']) ? floatval($config['cleaning_fee']) : 120.00;
 
@@ -158,6 +207,12 @@ echo json_encode([
     "children" => $children,
     "babies" => $babies,
     "pricing" => [
+        "min_stay" => $min_stay,
+        "max_stay" => $max_stay,
+        "raw_accommodation" => $base_accommodation,
+        "discount_percentage" => $discount_pct,
+        "discount_type" => $discount_type,
+        "discount_amount" => $discount_amount,
         "base_accommodation" => $total_accommodation,
         "cleaning_fee" => $cleaning_fee,
         "tourist_tax" => [
@@ -175,7 +230,7 @@ echo json_encode([
         "deposit_required" => $deposit_required,
         "pending_balance" => $pending_balance,
         "balance_due_date" => $balance_due_date,
-        "currency" => $config['currency'],
+        "currency" => isset($config['moneda']) ? $config['moneda'] : $config['currency'],
         "cancellation_policy" => $config['cancellation_policy']
     ],
     "nightly_breakdown" => $nightly_breakdown,

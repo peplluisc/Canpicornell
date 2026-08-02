@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Calendario y Precios | Can Picornell</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.png" type="image/png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+        :root {
+            --primary: #1e293b;
+            --primary-dark: #0f172a;
+            --accent: #d97706;
+            --accent-hover: #b45309;
+            --accent-light: #fef3c7;
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        .app-header {
+            background: var(--primary-dark);
+            color: #ffffff;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-subtitle {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.08);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #475569;
+            color: #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--danger);
+            color: #fca5a5;
+        }
+
+        /* MAIN CONTAINER */
+        .main-content {
+            max-width: 1400px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            flex: 1;
+        }
+
+        /* LOGIN SCREEN */
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70vh;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .login-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--accent-light);
+            color: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .login-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .google-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .setup-notice {
+            background: #f1f5f9;
+            border-left: 4px solid var(--accent);
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-align: left;
+            margin-top: 1.5rem;
+            color: #475569;
+        }
+
+        .setup-notice code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* DASHBOARD LAYOUT */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* TOOLBAR */
+        .toolbar-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            border-color: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        /* CALENDAR CONTAINER */
+        .calendar-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .calendar-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .month-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .month-nav-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-main);
+            transition: all 0.15s;
+        }
+
+        .month-nav-btn:hover {
+            background: #f1f5f9;
+            color: var(--accent);
+        }
+
+        .current-month-display {
+            font-size: 1.1rem;
+            font-weight: 600;
+            min-width: 160px;
+            text-align: center;
+        }
+
+        /* CALENDAR GRID */
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .day-cell {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 84px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            user-select: none;
+        }
+
+        .day-cell:hover {
+            border-color: var(--accent);
+            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15);
+            background: white;
+        }
+
+        .day-cell.other-month {
+            opacity: 0.35;
+            background: #f1f5f9;
+        }
+
+        .day-cell.selected {
+            background: #fef3c7 !important;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+
+        .day-cell.in-range {
+            background: #fffbeb;
+            border-color: #fcd34d;
+        }
+
+        .day-number {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--primary);
+        }
+
+        .day-price {
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 3px 6px;
+            border-radius: 6px;
+            text-align: right;
+            align-self: flex-end;
+            margin-top: 4px;
+        }
+
+        .price-low {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .price-mid {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .price-high {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .day-cell.is-booked {
+            background-color: #f1f5f9;
+            background-image: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 6px, #e2e8f0 6px, #e2e8f0 12px);
+        }
+
+        .booked-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #475569;
+            background: #e2e8f0;
+            padding: 2px 4px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            display: inline-block;
+        }
+
+        .day-cell.has-custom-price::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        /* SIDEBAR / EDIT PANEL */
+        .sidebar-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 85px;
+        }
+
+        .sidebar-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .selection-summary {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            font-size: 0.875rem;
+            color: var(--text-main);
+            margin-bottom: 1.25rem;
+        }
+
+        .selection-count {
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+        }
+
+        .quick-presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .preset-btn {
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .preset-btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent-hover);
+        }
+
+        .range-picker {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .preset-select-bar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .chip-btn {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.15s;
+        }
+
+        .chip-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* LEGEND */
+        .legend-bar {
+            display: flex;
+            gap: 16px;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        /* TOAST NOTIFICATION */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--primary-dark);
+            color: white;
+            padding: 14px 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+
+        /* MODAL */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+
+        .modal-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="app-header">
+        <div class="brand-container">
+            <div class="brand-logo">
+                <i class="fa-solid fa-house-chimney"></i>
+            </div>
+            <div>
+                <div class="brand-title">Can Picornell</div>
+                <div class="brand-subtitle">Gestión Privada de Precios y Calendario</div>
+            </div>
+        </div>
+
+        <div id="userPanel" class="user-panel" style="display: none;">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <span id="userEmail">admin@canpicornell.com</span>
+            </div>
+            <button class="btn-logout" onclick="logoutAdmin()">
+                <i class="fa-solid fa-right-from-bracket"></i> Salir
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN APP WRAPPER -->
+    <main class="main-content">
+
+        <!-- VIEW 1: LOGIN -->
+        <div id="loginView" class="login-wrapper">
+            <div class="login-card">
+                <div class="login-icon">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h1 class="login-title">Acceso Privado</h1>
+                <p class="login-desc">Módulo de administración del calendario de tarifas. Inicia sesión con la cuenta de Gmail autorizada para acceder.</p>
+                
+                <div class="google-btn-container">
+                    <div id="g_id_onload"></div>
+                    <div id="googleBtnPlaceholder"></div>
+                </div>
+
+                <div id="devFallbackContainer" style="display:none; margin-top: 1rem;">
+                    <button class="btn btn-secondary" onclick="demoDevLogin()" style="width: 100%; justify-content: center;">
+                        <i class="fa-solid fa-bolt"></i> Acceso Modo Vista Previa / Desarrollo
+                    </button>
+                </div>
+
+                <div class="setup-notice" id="setupNotice">
+                    <i class="fa-solid fa-circle-info"></i> <strong>Nota de configuración:</strong> Configura <code>ADMIN_ALLOWED_EMAIL</code> y <code>GOOGLE_CLIENT_ID</code> en el archivo <code>.env</code> para habilitar la autenticación estricta con Google.
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: DASHBOARD & CALENDAR -->
+        <div id="dashboardView" style="display: none;">
+
+            <!-- TOOLBAR CARD -->
+            <div class="toolbar-card">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <h2 style="font-size: 1.1rem; color: var(--primary); font-weight: 600;">Acciones del Sistema</h2>
+                    <span id="syncBadge" style="background: #e2e8f0; color: #475569; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; font-weight: 600;">
+                        <i class="fa-solid fa-check"></i> Sincronizado
+                    </span>
+                </div>
+
+                <div class="toolbar-actions">
+                    <input type="file" id="jsonFileInput" accept=".json" style="display: none;" onchange="handleFileUpload(event)">
+                    
+                    <button class="btn btn-secondary" onclick="document.getElementById('jsonFileInput').click()">
+                        <i class="fa-solid fa-file-import"></i> Cargar JSON
+                    </button>
+
+                    <button class="btn btn-secondary" onclick="downloadJSON()">
+                        <i class="fa-solid fa-file-export"></i> Descargar JSON
+                    </button>
+
+                    <button class="btn btn-primary" onclick="reloadFromServer()">
+                        <i class="fa-solid fa-rotate-right"></i> Recargar
+                    </button>
+
+                    <button class="btn btn-success" onclick="savePricesToServer()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Guardar en Servidor
+                    </button>
+                </div>
+            </div>
+
+            <!-- DASHBOARD GRID -->
+            <div class="dashboard-grid">
+                
+                <!-- CALENDAR CARD -->
+                <div class="calendar-card">
+                    <div class="calendar-header">
+                        <div class="calendar-title">
+                            <i class="fa-regular fa-calendar-days" style="color: var(--accent);"></i>
+                            Calendario de Tarifas
+                        </div>
+                        
+                        <div class="month-nav">
+                            <button class="month-nav-btn" onclick="navigateMonth(-1)">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <div class="current-month-display" id="currentMonthDisplay">Cargando...</div>
+                            <button class="month-nav-btn" onclick="navigateMonth(1)">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PRESET SELECT CHIPS -->
+                    <div class="preset-select-bar">
+                        <span style="font-size: 0.75rem; color: var(--text-muted); align-self: center; font-weight: 600;">Selección rápida:</span>
+                        <button class="chip-btn" onclick="selectCurrentMonth()">Este Mes</button>
+                        <button class="chip-btn" onclick="selectWeekends()">Fines de semana</button>
+                        <button class="chip-btn" onclick="clearSelection()">Limpiar Selección</button>
+                    </div>
+
+                    <!-- WEEKDAY HEADERS -->
+                    <div class="calendar-weekdays">
+                        <div>Lun</div>
+                        <div>Mar</div>
+                        <div>Mié</div>
+                        <div>Jue</div>
+                        <div>Vie</div>
+                        <div>Sáb</div>
+                        <div>Dom</div>
+                    </div>
+
+                    <!-- DAY CELLS GRID -->
+                    <div class="calendar-days" id="calendarDaysGrid"></div>
+
+                    <!-- LEGEND -->
+                    <div class="legend-bar">
+                        <div class="legend-item">
+                            <div class="legend-dot price-low"></div>
+                            <span>Temporada Baja (< 150€)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot price-mid"></div>
+                            <span>Temporada Media (150€ - 250€)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot price-high"></div>
+                            <span>Temporada Alta (> 250€)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #e2e8f0; border: 1px solid #94a3b8;"></div>
+                            <span>Ocupado (Airbnb / Reserva)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SIDEBAR EDIT PANEL -->
+                <div class="sidebar-card">
+                    <div class="sidebar-title">
+                        <i class="fa-solid fa-sliders" style="color: var(--accent);"></i>
+                        Edición de Tarifas
+                    </div>
+
+                    <div class="selection-summary">
+                        <span>Días seleccionados:</span>
+                        <span class="selection-count" id="selectedCountText">0 días</span>
+                        <div id="selectedRangePreview" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Haga clic o arrastre fechas en el calendario</div>
+                    </div>
+
+                    <!-- RANGE PICKER INPUTS -->
+                    <div class="form-group">
+                        <label class="form-label">Franja por Fechas (Rango)</label>
+                        <div class="range-picker">
+                            <input type="date" id="rangeStartInput" class="form-control">
+                            <input type="date" id="rangeEndInput" class="form-control">
+                        </div>
+                        <button class="chip-btn" style="margin-top: 6px; width: 100%;" onclick="selectRangeFromInputs()">
+                            <i class="fa-solid fa-object-group"></i> Marcar Rango de Fechas
+                        </button>
+                    </div>
+
+                    <!-- NEW PRICE INPUT -->
+                    <div class="form-group">
+                        <label class="form-label" for="newPriceInput">Nuevo Precio por Noche (€)</label>
+                        <input type="number" id="newPriceInput" class="form-control" placeholder="Ej: 180" min="0" step="5">
+                        
+                        <div class="quick-presets">
+                            <button class="preset-btn" onclick="setPriceInputValue(120)">120 €</button>
+                            <button class="preset-btn" onclick="setPriceInputValue(180)">180 €</button>
+                            <button class="preset-btn" onclick="setPriceInputValue(280)">280 €</button>
+                        </div>
+                    </div>
+
+                    <!-- APPLY BUTTON -->
+                    <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 1rem;" onclick="applyPriceToSelection()">
+                        <i class="fa-solid fa-check-double"></i> Aplicar Precio a Selección
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toastNotification" class="toast">
+        <i id="toastIcon" class="fa-solid fa-circle-check" style="font-size: 1.2rem;"></i>
+        <span id="toastMessage">Operación realizada correctamente.</span>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // State management
+        let state = {
+            authenticated: false,
+            userEmail: '',
+            googleClientId: '',
+            configData: null,
+            dailyPricesMap: {}, // 'YYYY-MM-DD' => price
+            bookedDatesSet: new Set(), // Set of occupied 'YYYY-MM-DD' from Airbnb iCal
+            currentYear: new Date().getFullYear(),
+            currentMonth: new Date().getMonth(), // 0-indexed
+            selectedDates: new Set(), // Set of 'YYYY-MM-DD'
+            lastClickedDate: null
+        };
+
+        const MONTH_NAMES = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+
+        // ON PAGE LOAD
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuthStatus();
+        });
+
+        // AUTH CHECK
+        async function checkAuthStatus() {
+            try {
+                const res = await fetch('../api/admin_auth.php?action=status');
+                const data = await res.json();
+                
+                state.googleClientId = data.google_client_id || '';
+                
+                if (data.authenticated) {
+                    onAuthSuccess(data.email);
+                } else {
+                    showLoginScreen();
+                    initGoogleAuth();
+                }
+            } catch (err) {
+                console.error("Auth check failed:", err);
+                showLoginScreen();
+                initGoogleAuth();
+            }
+        }
+
+        // GOOGLE SIGN-IN INIT
+        function initGoogleAuth() {
+            const container = document.getElementById('googleBtnPlaceholder');
+            const notice = document.getElementById('setupNotice');
+            const devFallback = document.getElementById('devFallbackContainer');
+
+            if (state.googleClientId) {
+                google.accounts.id.initialize({
+                    client_id: state.googleClientId,
+                    callback: handleGoogleCredentialResponse
+                });
+                google.accounts.id.renderButton(
+                    container,
+                    { theme: "outline", size: "large", text: "signin_with", shape: "rectangular", width: 280 }
+                );
+                notice.style.display = 'none';
+                devFallback.style.display = 'none';
+            } else {
+                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem; padding: 10px;">ID de cliente Google no configurado en .env</div>`;
+                notice.style.display = 'block';
+                devFallback.style.display = 'block';
+            }
+        }
+
+        async function handleGoogleCredentialResponse(response) {
+            try {
+                const res = await fetch('../api/admin_auth.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_token: response.credential })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    onAuthSuccess(data.email);
+                } else {
+                    showToast(data.error || 'Error al iniciar sesión', 'error');
+                }
+            } catch (err) {
+                showToast('Error de conexión con el servidor', 'error');
+            }
+        }
+
+        function demoDevLogin() {
+            onAuthSuccess('dev-preview@canpicornell.local');
+            showToast('Acceso en modo vista previa de desarrollo', 'success');
+        }
+
+        function onAuthSuccess(email) {
+            state.authenticated = true;
+            state.userEmail = email;
+
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('dashboardView').style.display = 'block';
+            document.getElementById('userPanel').style.display = 'flex';
+            
+            document.getElementById('userEmail').textContent = email;
+            document.getElementById('userAvatar').textContent = email.charAt(0).toUpperCase();
+
+            loadPricesConfig();
+        }
+
+        async function logoutAdmin() {
+            try {
+                await fetch('../api/admin_auth.php?action=logout', { method: 'POST' });
+            } catch(e){}
+            location.reload();
+        }
+
+        function showLoginScreen() {
+            document.getElementById('loginView').style.display = 'flex';
+            document.getElementById('dashboardView').style.display = 'none';
+            document.getElementById('userPanel').style.display = 'none';
+        }
+
+        // LOAD PRICES FROM API AND FETCH AIRBNB BOOKED DATES
+        async function loadPricesConfig() {
+            try {
+                const res = await fetch('../api/get_prices.php');
+                if (!res.ok) {
+                    const fallbackRes = await fetch('../api/configuracion_precios.json');
+                    state.configData = await fallbackRes.json();
+                } else {
+                    state.configData = await res.json();
+                }
+                
+                processPricesMap();
+                await fetchBookedDates();
+                renderCalendar();
+                showToast('Configuración de precios y calendario iCal cargados', 'success');
+            } catch (err) {
+                console.error("Error loading prices:", err);
+                showToast('Error al cargar la configuración de precios', 'error');
+            }
+        }
+
+        async function fetchBookedDates() {
+            try {
+                const res = await fetch('../api/ical_proxy.php');
+                if (res.ok) {
+                    const bookedRanges = await res.json();
+                    state.bookedDatesSet.clear();
+                    if (Array.isArray(bookedRanges)) {
+                        bookedRanges.forEach(range => {
+                            if (range.start && range.end) {
+                                let curr = new Date(range.start);
+                                const end = new Date(range.end);
+                                while (curr < end) {
+                                    const str = curr.toISOString().split('T')[0];
+                                    state.bookedDatesSet.add(str);
+                                    curr.setDate(curr.getDate() + 1);
+                                }
+                            }
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not fetch iCal booked dates:", e);
+            }
+        }
+
+        function processPricesMap() {
+            state.dailyPricesMap = {};
+            if (state.configData && Array.isArray(state.configData.precios_diarios)) {
+                state.configData.precios_diarios.forEach(item => {
+                    if (item.fecha && item.precio !== undefined) {
+                        state.dailyPricesMap[item.fecha] = parseFloat(item.precio);
+                    }
+                });
+            }
+        }
+
+        // CALENDAR RENDER
+        function renderCalendar() {
+            const displayEl = document.getElementById('currentMonthDisplay');
+            const gridEl = document.getElementById('calendarDaysGrid');
+            gridEl.innerHTML = '';
+
+            displayEl.textContent = `${MONTH_NAMES[state.currentMonth]} ${state.currentYear}`;
+
+            const firstDayOfMonth = new Date(state.currentYear, state.currentMonth, 1);
+            const lastDayOfMonth = new Date(state.currentYear, state.currentMonth + 1, 0);
+            
+            // Adjust day of week for Monday start (0: Mon, 6: Sun)
+            let startDay = firstDayOfMonth.getDay() - 1;
+            if (startDay === -1) startDay = 6;
+
+            const totalDays = lastDayOfMonth.getDate();
+            const prevMonthLastDay = new Date(state.currentYear, state.currentMonth, 0).getDate();
+
+            // Previous month padding cells
+            for (let i = startDay - 1; i >= 0; i--) {
+                const dayNum = prevMonthLastDay - i;
+                const cell = document.createElement('div');
+                cell.className = 'day-cell other-month';
+                cell.innerHTML = `<span class="day-number">${dayNum}</span>`;
+                gridEl.appendChild(cell);
+            }
+
+            // Current month days
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = formatDateStr(state.currentYear, state.currentMonth + 1, day);
+                const price = getPriceForDate(dateStr);
+                const isBooked = state.bookedDatesSet.has(dateStr);
+                
+                const cell = document.createElement('div');
+                cell.className = 'day-cell' + (isBooked ? ' is-booked' : '');
+                cell.dataset.date = dateStr;
+
+                if (state.selectedDates.has(dateStr)) {
+                    cell.classList.add('selected');
+                }
+
+                // Price badge styling class
+                let priceClass = 'price-low';
+                if (price >= 250) priceClass = 'price-high';
+                else if (price >= 150) priceClass = 'price-mid';
+
+                const bookedLabel = isBooked ? `<span class="booked-badge">Ocupado</span>` : ``;
+
+                cell.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="day-number">${day}</span>
+                        ${bookedLabel}
+                    </div>
+                    <span class="day-price ${priceClass}">${price} €</span>
+                `;
+
+                cell.addEventListener('click', (e) => handleDayClick(e, dateStr));
+                gridEl.appendChild(cell);
+            }
+
+            updateSelectionUI();
+        }
+
+
+        function getPriceForDate(dateStr) {
+            if (state.dailyPricesMap[dateStr] !== undefined) {
+                return state.dailyPricesMap[dateStr];
+            }
+            // Fallback default orientative price based on month
+            const monthNum = parseInt(dateStr.split('-')[1], 10);
+            if (state.configData && Array.isArray(state.configData.precios_mensuales)) {
+                const monthObj = state.configData.precios_mensuales.find(m => m.numero_mes === monthNum);
+                if (monthObj && monthObj.precio_orientativo_noche) {
+                    return monthObj.precio_orientativo_noche;
+                }
+            }
+            return 120; // global default
+        }
+
+        function handleDayClick(e, dateStr) {
+            if (e.shiftKey && state.lastClickedDate) {
+                // Range select from last clicked date to current
+                selectDateRange(state.lastClickedDate, dateStr);
+            } else {
+                if (state.selectedDates.has(dateStr)) {
+                    state.selectedDates.delete(dateStr);
+                } else {
+                    state.selectedDates.add(dateStr);
+                }
+                state.lastClickedDate = dateStr;
+            }
+
+            renderCalendar();
+        }
+
+        function selectDateRange(startStr, endStr) {
+            let start = new Date(startStr);
+            let end = new Date(endStr);
+
+            if (start > end) {
+                const temp = start;
+                start = end;
+                end = temp;
+            }
+
+            const current = new Date(start);
+            while (current <= end) {
+                const formatted = current.toISOString().split('T')[0];
+                state.selectedDates.add(formatted);
+                current.setDate(current.getDate() + 1);
+            }
+        }
+
+        function navigateMonth(delta) {
+            state.currentMonth += delta;
+            if (state.currentMonth < 0) {
+                state.currentMonth = 11;
+                state.currentYear--;
+            } else if (state.currentMonth > 11) {
+                state.currentMonth = 0;
+                state.currentYear++;
+            }
+            renderCalendar();
+        }
+
+        // SELECTION HELPERS
+        function selectCurrentMonth() {
+            const totalDays = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = formatDateStr(state.currentYear, state.currentMonth + 1, day);
+                state.selectedDates.add(dateStr);
+            }
+            renderCalendar();
+        }
+
+        function selectWeekends() {
+            const totalDays = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
+            for (let day = 1; day <= totalDays; day++) {
+                const d = new Date(state.currentYear, state.currentMonth, day);
+                const dayOfWeek = d.getDay(); // 0 is Sun, 6 is Sat
+                if (dayOfWeek === 0 || dayOfWeek === 6 || dayOfWeek === 5) {
+                    const dateStr = formatDateStr(state.currentYear, state.currentMonth + 1, day);
+                    state.selectedDates.add(dateStr);
+                }
+            }
+            renderCalendar();
+        }
+
+        function clearSelection() {
+            state.selectedDates.clear();
+            state.lastClickedDate = null;
+            renderCalendar();
+        }
+
+        function selectRangeFromInputs() {
+            const startVal = document.getElementById('rangeStartInput').value;
+            const endVal = document.getElementById('rangeEndInput').value;
+
+            if (!startVal || !endVal) {
+                showToast('Seleccione fecha de inicio y fin para marcar la franja', 'error');
+                return;
+            }
+
+            selectDateRange(startVal, endVal);
+            renderCalendar();
+            showToast(`Franja marcada: ${startVal} a ${endVal}`, 'success');
+        }
+
+        function updateSelectionUI() {
+            const count = state.selectedDates.size;
+            document.getElementById('selectedCountText').textContent = `${count} día${count !== 1 ? 's' : ''}`;
+            
+            const previewEl = document.getElementById('selectedRangePreview');
+            if (count === 0) {
+                previewEl.textContent = 'Haga clic o seleccione franjas en el calendario';
+            } else {
+                const sorted = Array.from(state.selectedDates).sort();
+                if (count === 1) {
+                    previewEl.textContent = `Fecha: ${sorted[0]}`;
+                } else {
+                    previewEl.textContent = `Del ${sorted[0]} al ${sorted[sorted.length - 1]}`;
+                }
+            }
+        }
+
+        function setPriceInputValue(val) {
+            document.getElementById('newPriceInput').value = val;
+        }
+
+        // APPLY EDIT TO SELECTED DATES
+        function applyPriceToSelection() {
+            const priceVal = parseFloat(document.getElementById('newPriceInput').value);
+            
+            if (isNaN(priceVal) || priceVal < 0) {
+                showToast('Por favor introduzca un precio válido en euros (€)', 'error');
+                return;
+            }
+
+            if (state.selectedDates.size === 0) {
+                showToast('Seleccione al menos un día en el calendario o marque una franja', 'error');
+                return;
+            }
+
+            state.selectedDates.forEach(dateStr => {
+                state.dailyPricesMap[dateStr] = priceVal;
+            });
+
+            syncMapToConfigData();
+            renderCalendar();
+            showToast(`Precio de ${priceVal} € aplicado a ${state.selectedDates.size} días`, 'success');
+        }
+
+        function syncMapToConfigData() {
+            if (!state.configData) {
+                state.configData = {
+                    moneda: "EUR",
+                    idioma: "es-ES",
+                    zona_horaria: "Europe/Madrid",
+                    precios_diarios: []
+                };
+            }
+
+            // Convert dailyPricesMap back to sorted array of objects
+            const updatedList = [];
+            Object.keys(state.dailyPricesMap).sort().forEach(dateStr => {
+                updatedList.push({
+                    fecha: dateStr,
+                    precio: state.dailyPricesMap[dateStr]
+                });
+            });
+
+            state.configData.precios_diarios = updatedList;
+            
+            // Update sync badge
+            const badge = document.getElementById('syncBadge');
+            badge.style.background = '#fef3c7';
+            badge.style.color = '#b45309';
+            badge.innerHTML = `<i class="fa-solid fa-circle-dot"></i> Cambios sin guardar`;
+        }
+
+        // SERVER SYNC & FILE OPERATIONS
+        async function savePricesToServer() {
+            syncMapToConfigData();
+
+            try {
+                const res = await fetch('../api/save_prices.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(state.configData)
+                });
+
+                const result = await res.json();
+
+                if (res.ok && result.success) {
+                    showToast(result.message || 'Precios guardados en el servidor', 'success');
+                    const badge = document.getElementById('syncBadge');
+                    badge.style.background = '#dcfce7';
+                    badge.style.color = '#15803d';
+                    badge.innerHTML = `<i class="fa-solid fa-check"></i> Sincronizado`;
+                } else {
+                    showToast(result.error || 'Error al guardar los precios', 'error');
+                }
+            } catch (err) {
+                console.error("Save error:", err);
+                showToast('No se pudo conectar con el servidor', 'error');
+            }
+        }
+
+        async function reloadFromServer() {
+            await loadPricesConfig();
+        }
+
+        function downloadJSON() {
+            syncMapToConfigData();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.configData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "configuracion_precios.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('Fichero configuracion_precios.json descargado', 'success');
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (!json || !Array.isArray(json.precios_diarios)) {
+                        showToast('El archivo JSON no contiene un array de "precios_diarios" válido', 'error');
+                        return;
+                    }
+
+                    state.configData = json;
+                    processPricesMap();
+                    renderCalendar();
+                    showToast(`JSON cargado correctamente: ${json.precios_diarios.length} días importados`, 'success');
+                } catch (err) {
+                    showToast('Error al procesar el archivo JSON', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // UTILITY FUNCTIONS
+        function formatDateStr(year, month, day) {
+            const m = month < 10 ? '0' + month : month;
+            const d = day < 10 ? '0' + day : day;
+            return `${year}-${m}-${d}`;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toastNotification');
+            const msgEl = document.getElementById('toastMessage');
+            const iconEl = document.getElementById('toastIcon');
+
+            msgEl.textContent = message;
+            toast.className = `toast ${type} show`;
+
+            if (type === 'success') {
+                iconEl.className = 'fa-solid fa-circle-check';
+                iconEl.style.color = 'var(--success)';
+            } else {
+                iconEl.className = 'fa-solid fa-triangle-exclamation';
+                iconEl.style.color = 'var(--danger)';
+            }
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
