@@ -907,10 +907,32 @@
             await checkAuthStatus();
         });
 
+        let apiPrefix = '../api';
+
+        async function apiFetch(endpoint, options) {
+            try {
+                let res = await fetch(`${apiPrefix}/${endpoint}`, options);
+                if (res.status === 404 && apiPrefix === '../api') {
+                    apiPrefix = '../API';
+                    res = await fetch(`${apiPrefix}/${endpoint}`, options);
+                }
+                return res;
+            } catch (err) {
+                if (apiPrefix === '../api') {
+                    apiPrefix = '../API';
+                    return await fetch(`${apiPrefix}/${endpoint}`, options);
+                }
+                throw err;
+            }
+        }
+
         // AUTH CHECK
         async function checkAuthStatus() {
             try {
-                const res = await fetch('../api/admin_auth.php?action=status');
+                const res = await apiFetch('admin_auth.php?action=status');
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
                 const data = await res.json();
                 
                 state.googleClientId = data.google_client_id || '';
@@ -946,7 +968,7 @@
                 notice.style.display = 'none';
                 devFallback.style.display = 'none';
             } else {
-                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem; padding: 10px;">ID de cliente Google no configurado en .env</div>`;
+                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem; padding: 10px;">ID de cliente Google no detectado en el servidor</div>`;
                 notice.style.display = 'block';
                 devFallback.style.display = 'block';
             }
@@ -954,7 +976,7 @@
 
         async function handleGoogleCredentialResponse(response) {
             try {
-                const res = await fetch('../api/admin_auth.php', {
+                const res = await apiFetch('admin_auth.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id_token: response.credential })
@@ -992,7 +1014,7 @@
 
         async function logoutAdmin() {
             try {
-                await fetch('../api/admin_auth.php?action=logout', { method: 'POST' });
+                await apiFetch('admin_auth.php?action=logout', { method: 'POST' });
             } catch(e){}
             location.reload();
         }
@@ -1006,9 +1028,9 @@
         // LOAD PRICES FROM API AND FETCH AIRBNB BOOKED DATES
         async function loadPricesConfig() {
             try {
-                const res = await fetch('../api/get_prices.php');
+                const res = await apiFetch('get_prices.php');
                 if (!res.ok) {
-                    const fallbackRes = await fetch('../api/configuracion_precios.json');
+                    const fallbackRes = await apiFetch('configuracion_precios.json');
                     state.configData = await fallbackRes.json();
                 } else {
                     state.configData = await res.json();
@@ -1026,7 +1048,7 @@
 
         async function fetchBookedDates() {
             try {
-                const res = await fetch('../api/ical_proxy.php');
+                const res = await apiFetch('ical_proxy.php');
                 if (res.ok) {
                     const bookedRanges = await res.json();
                     state.bookedDatesSet.clear();
@@ -1048,6 +1070,7 @@
                 console.warn("Could not fetch iCal booked dates:", e);
             }
         }
+
 
         function processPricesMap() {
             state.dailyPricesMap = {};
@@ -1305,11 +1328,12 @@
             syncMapToConfigData();
 
             try {
-                const res = await fetch('../api/save_prices.php', {
+                const res = await apiFetch('save_prices.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(state.configData)
                 });
+
 
                 const result = await res.json();
 
