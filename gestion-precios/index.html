@@ -565,9 +565,73 @@
         }
 
         .range-picker {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 8px;
+        }
+
+        .range-picker-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .range-picker-item span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .view-toggle-bar {
+            display: flex;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .view-toggle-btn {
+            background: transparent;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .view-toggle-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .annual-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .annual-month-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .annual-month-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+            text-align: center;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .preset-select-bar {
@@ -772,14 +836,25 @@
                             Calendario de Tarifas
                         </div>
                         
-                        <div class="month-nav">
-                            <button class="month-nav-btn" onclick="navigateMonth(-1)">
-                                <i class="fa-solid fa-chevron-left"></i>
-                            </button>
-                            <div class="current-month-display" id="currentMonthDisplay">Cargando...</div>
-                            <button class="month-nav-btn" onclick="navigateMonth(1)">
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <div class="view-toggle-bar">
+                                <button id="btnViewMonthly" class="view-toggle-btn active" onclick="switchViewMode('monthly')">
+                                    <i class="fa-solid fa-calendar-day"></i> Mensual
+                                </button>
+                                <button id="btnViewAnnual" class="view-toggle-btn" onclick="switchViewMode('annual')">
+                                    <i class="fa-solid fa-calendar-days"></i> Anual (12 Meses)
+                                </button>
+                            </div>
+
+                            <div class="month-nav">
+                                <button class="month-nav-btn" onclick="navigateMonth(-1)">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <div class="current-month-display" id="currentMonthDisplay">Cargando...</div>
+                                <button class="month-nav-btn" onclick="navigateMonth(1)">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -787,12 +862,13 @@
                     <div class="preset-select-bar">
                         <span style="font-size: 0.75rem; color: var(--text-muted); align-self: center; font-weight: 600;">Selección rápida:</span>
                         <button class="chip-btn" onclick="selectCurrentMonth()">Este Mes</button>
+                        <button class="chip-btn" onclick="selectFullYear()">Año Completo</button>
                         <button class="chip-btn" onclick="selectWeekends()">Fines de semana</button>
                         <button class="chip-btn" onclick="clearSelection()">Limpiar Selección</button>
                     </div>
 
-                    <!-- WEEKDAY HEADERS -->
-                    <div class="calendar-weekdays">
+                    <!-- WEEKDAY HEADERS (for monthly view) -->
+                    <div class="calendar-weekdays" id="calendarWeekdaysHeader">
                         <div>Lun</div>
                         <div>Mar</div>
                         <div>Mié</div>
@@ -843,10 +919,16 @@
                     <div class="form-group">
                         <label class="form-label">Franja por Fechas (Rango)</label>
                         <div class="range-picker">
-                            <input type="date" id="rangeStartInput" class="form-control">
-                            <input type="date" id="rangeEndInput" class="form-control">
+                            <div class="range-picker-item">
+                                <span>Desde:</span>
+                                <input type="date" id="rangeStartInput" class="form-control">
+                            </div>
+                            <div class="range-picker-item">
+                                <span>Hasta:</span>
+                                <input type="date" id="rangeEndInput" class="form-control">
+                            </div>
                         </div>
-                        <button class="chip-btn" style="margin-top: 6px; width: 100%;" onclick="selectRangeFromInputs()">
+                        <button class="chip-btn" style="margin-top: 8px; width: 100%; font-weight: 600;" onclick="selectRangeFromInputs()">
                             <i class="fa-solid fa-object-group"></i> Marcar Rango de Fechas
                         </button>
                     </div>
@@ -867,7 +949,19 @@
                     <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 1rem;" onclick="applyPriceToSelection()">
                         <i class="fa-solid fa-check-double"></i> Aplicar Precio a Selección
                     </button>
+
+                    <!-- AIRBNB ICAL URL CONFIG -->
+                    <div class="form-group" style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
+                        <label class="form-label">
+                            <i class="fa-solid fa-link" style="color: var(--accent);"></i> Enlace iCal de Airbnb (.ics)
+                        </label>
+                        <input type="text" id="airbnbIcalInput" class="form-control" placeholder="https://www.airbnb.es/calendar/ical/...ics" style="font-size: 0.8rem;">
+                        <button class="chip-btn" style="margin-top: 8px; width: 100%; font-weight: 600;" onclick="saveAirbnbIcalUrl()">
+                            <i class="fa-solid fa-rotate"></i> Guardar y Sincronizar iCal
+                        </button>
+                    </div>
                 </div>
+
 
             </div>
 
@@ -894,7 +988,8 @@
             currentYear: new Date().getFullYear(),
             currentMonth: new Date().getMonth(), // 0-indexed
             selectedDates: new Set(), // Set of 'YYYY-MM-DD'
-            lastClickedDate: null
+            lastClickedDate: null,
+            viewMode: 'monthly' // 'monthly' | 'annual'
         };
 
         const MONTH_NAMES = [
@@ -1036,6 +1131,10 @@
                     state.configData = await res.json();
                 }
                 
+                if (state.configData && state.configData.ical_url) {
+                    document.getElementById('airbnbIcalInput').value = state.configData.ical_url;
+                }
+
                 processPricesMap();
                 await fetchBookedDates();
                 renderCalendar();
@@ -1071,7 +1170,6 @@
             }
         }
 
-
         function processPricesMap() {
             state.dailyPricesMap = {};
             if (state.configData && Array.isArray(state.configData.precios_diarios)) {
@@ -1083,75 +1181,154 @@
             }
         }
 
+        // VIEW MODE SWITCHER (MONTHLY vs ANNUAL)
+        function switchViewMode(mode) {
+            state.viewMode = mode;
+            document.getElementById('btnViewMonthly').classList.toggle('active', mode === 'monthly');
+            document.getElementById('btnViewAnnual').classList.toggle('active', mode === 'annual');
+            renderCalendar();
+        }
+
         // CALENDAR RENDER
         function renderCalendar() {
             const displayEl = document.getElementById('currentMonthDisplay');
             const gridEl = document.getElementById('calendarDaysGrid');
+            const weekdaysHeader = document.getElementById('calendarWeekdaysHeader');
             gridEl.innerHTML = '';
 
-            displayEl.textContent = `${MONTH_NAMES[state.currentMonth]} ${state.currentYear}`;
+            if (state.viewMode === 'annual') {
+                weekdaysHeader.style.display = 'none';
+                gridEl.className = 'annual-grid';
+                displayEl.textContent = `Año ${state.currentYear}`;
 
-            const firstDayOfMonth = new Date(state.currentYear, state.currentMonth, 1);
-            const lastDayOfMonth = new Date(state.currentYear, state.currentMonth + 1, 0);
-            
-            // Adjust day of week for Monday start (0: Mon, 6: Sun)
-            let startDay = firstDayOfMonth.getDay() - 1;
-            if (startDay === -1) startDay = 6;
+                for (let m = 0; m < 12; m++) {
+                    const monthCard = document.createElement('div');
+                    monthCard.className = 'annual-month-card';
 
-            const totalDays = lastDayOfMonth.getDate();
-            const prevMonthLastDay = new Date(state.currentYear, state.currentMonth, 0).getDate();
+                    const monthTitle = document.createElement('div');
+                    monthTitle.className = 'annual-month-title';
+                    monthTitle.textContent = MONTH_NAMES[m];
+                    monthCard.appendChild(monthTitle);
 
-            // Previous month padding cells
-            for (let i = startDay - 1; i >= 0; i--) {
-                const dayNum = prevMonthLastDay - i;
-                const cell = document.createElement('div');
-                cell.className = 'day-cell other-month';
-                cell.innerHTML = `<span class="day-number">${dayNum}</span>`;
-                gridEl.appendChild(cell);
-            }
+                    const miniWeekdays = document.createElement('div');
+                    miniWeekdays.className = 'calendar-weekdays';
+                    miniWeekdays.innerHTML = `<div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div><div>Do</div>`;
+                    monthCard.appendChild(miniWeekdays);
 
-            // Current month days
-            for (let day = 1; day <= totalDays; day++) {
-                const dateStr = formatDateStr(state.currentYear, state.currentMonth + 1, day);
-                const price = getPriceForDate(dateStr);
-                const isBooked = state.bookedDatesSet.has(dateStr);
-                
-                const cell = document.createElement('div');
-                cell.className = 'day-cell' + (isBooked ? ' is-booked' : '');
-                cell.dataset.date = dateStr;
+                    const daysGrid = document.createElement('div');
+                    daysGrid.className = 'calendar-days';
 
-                if (state.selectedDates.has(dateStr)) {
-                    cell.classList.add('selected');
+                    const firstDay = new Date(state.currentYear, m, 1);
+                    const lastDay = new Date(state.currentYear, m + 1, 0);
+                    let startDay = firstDay.getDay() - 1;
+                    if (startDay === -1) startDay = 6;
+                    const totalDays = lastDay.getDate();
+                    const prevMonthLastDay = new Date(state.currentYear, m, 0).getDate();
+
+                    for (let i = startDay - 1; i >= 0; i--) {
+                        const dayNum = prevMonthLastDay - i;
+                        const cell = document.createElement('div');
+                        cell.className = 'day-cell other-month';
+                        cell.innerHTML = `<span class="day-number">${dayNum}</span>`;
+                        daysGrid.appendChild(cell);
+                    }
+
+                    for (let day = 1; day <= totalDays; day++) {
+                        const dateStr = formatDateStr(state.currentYear, m + 1, day);
+                        const price = getPriceForDate(dateStr);
+                        const isBooked = state.bookedDatesSet.has(dateStr);
+
+                        const cell = document.createElement('div');
+                        cell.className = 'day-cell' + (isBooked ? ' is-booked' : '');
+                        cell.dataset.date = dateStr;
+
+                        if (state.selectedDates.has(dateStr)) {
+                            cell.classList.add('selected');
+                        }
+
+                        let priceClass = 'price-low';
+                        if (price >= 250) priceClass = 'price-high';
+                        else if (price >= 150) priceClass = 'price-mid';
+
+                        const bookedLabel = isBooked ? `<span class="booked-badge">Oc</span>` : ``;
+
+                        cell.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span class="day-number">${day}</span>
+                                ${bookedLabel}
+                            </div>
+                            <span class="day-price ${priceClass}">${price}€</span>
+                        `;
+
+                        cell.addEventListener('click', (e) => handleDayClick(e, dateStr));
+                        daysGrid.appendChild(cell);
+                    }
+
+                    monthCard.appendChild(daysGrid);
+                    gridEl.appendChild(monthCard);
                 }
 
-                // Price badge styling class
-                let priceClass = 'price-low';
-                if (price >= 250) priceClass = 'price-high';
-                else if (price >= 150) priceClass = 'price-mid';
+            } else { // MONTHLY VIEW
+                weekdaysHeader.style.display = 'grid';
+                gridEl.className = 'calendar-days';
+                displayEl.textContent = `${MONTH_NAMES[state.currentMonth]} ${state.currentYear}`;
 
-                const bookedLabel = isBooked ? `<span class="booked-badge">Ocupado</span>` : ``;
+                const firstDayOfMonth = new Date(state.currentYear, state.currentMonth, 1);
+                const lastDayOfMonth = new Date(state.currentYear, state.currentMonth + 1, 0);
+                
+                let startDay = firstDayOfMonth.getDay() - 1;
+                if (startDay === -1) startDay = 6;
 
-                cell.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="day-number">${day}</span>
-                        ${bookedLabel}
-                    </div>
-                    <span class="day-price ${priceClass}">${price} €</span>
-                `;
+                const totalDays = lastDayOfMonth.getDate();
+                const prevMonthLastDay = new Date(state.currentYear, state.currentMonth, 0).getDate();
 
-                cell.addEventListener('click', (e) => handleDayClick(e, dateStr));
-                gridEl.appendChild(cell);
+                for (let i = startDay - 1; i >= 0; i--) {
+                    const dayNum = prevMonthLastDay - i;
+                    const cell = document.createElement('div');
+                    cell.className = 'day-cell other-month';
+                    cell.innerHTML = `<span class="day-number">${dayNum}</span>`;
+                    gridEl.appendChild(cell);
+                }
+
+                for (let day = 1; day <= totalDays; day++) {
+                    const dateStr = formatDateStr(state.currentYear, state.currentMonth + 1, day);
+                    const price = getPriceForDate(dateStr);
+                    const isBooked = state.bookedDatesSet.has(dateStr);
+                    
+                    const cell = document.createElement('div');
+                    cell.className = 'day-cell' + (isBooked ? ' is-booked' : '');
+                    cell.dataset.date = dateStr;
+
+                    if (state.selectedDates.has(dateStr)) {
+                        cell.classList.add('selected');
+                    }
+
+                    let priceClass = 'price-low';
+                    if (price >= 250) priceClass = 'price-high';
+                    else if (price >= 150) priceClass = 'price-mid';
+
+                    const bookedLabel = isBooked ? `<span class="booked-badge">Ocupado</span>` : ``;
+
+                    cell.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="day-number">${day}</span>
+                            ${bookedLabel}
+                        </div>
+                        <span class="day-price ${priceClass}">${price} €</span>
+                    `;
+
+                    cell.addEventListener('click', (e) => handleDayClick(e, dateStr));
+                    gridEl.appendChild(cell);
+                }
             }
 
             updateSelectionUI();
         }
 
-
         function getPriceForDate(dateStr) {
             if (state.dailyPricesMap[dateStr] !== undefined) {
                 return state.dailyPricesMap[dateStr];
             }
-            // Fallback default orientative price based on month
             const monthNum = parseInt(dateStr.split('-')[1], 10);
             if (state.configData && Array.isArray(state.configData.precios_mensuales)) {
                 const monthObj = state.configData.precios_mensuales.find(m => m.numero_mes === monthNum);
@@ -1159,12 +1336,11 @@
                     return monthObj.precio_orientativo_noche;
                 }
             }
-            return 120; // global default
+            return 120;
         }
 
         function handleDayClick(e, dateStr) {
             if (e.shiftKey && state.lastClickedDate) {
-                // Range select from last clicked date to current
                 selectDateRange(state.lastClickedDate, dateStr);
             } else {
                 if (state.selectedDates.has(dateStr)) {
@@ -1197,13 +1373,17 @@
         }
 
         function navigateMonth(delta) {
-            state.currentMonth += delta;
-            if (state.currentMonth < 0) {
-                state.currentMonth = 11;
-                state.currentYear--;
-            } else if (state.currentMonth > 11) {
-                state.currentMonth = 0;
-                state.currentYear++;
+            if (state.viewMode === 'annual') {
+                state.currentYear += delta;
+            } else {
+                state.currentMonth += delta;
+                if (state.currentMonth < 0) {
+                    state.currentMonth = 11;
+                    state.currentYear--;
+                } else if (state.currentMonth > 11) {
+                    state.currentMonth = 0;
+                    state.currentYear++;
+                }
             }
             renderCalendar();
         }
@@ -1217,6 +1397,19 @@
             }
             renderCalendar();
         }
+
+        function selectFullYear() {
+            for (let m = 1; m <= 12; m++) {
+                const totalDays = new Date(state.currentYear, m, 0).getDate();
+                for (let d = 1; d <= totalDays; d++) {
+                    const dateStr = formatDateStr(state.currentYear, m, d);
+                    state.selectedDates.add(dateStr);
+                }
+            }
+            renderCalendar();
+            showToast(`Año ${state.currentYear} completo seleccionado`, 'success');
+        }
+
 
         function selectWeekends() {
             const totalDays = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
@@ -1315,6 +1508,13 @@
             });
 
             state.configData.precios_diarios = updatedList;
+
+            if (document.getElementById('airbnbIcalInput')) {
+                const icalVal = document.getElementById('airbnbIcalInput').value.trim();
+                if (icalVal) {
+                    state.configData.ical_url = icalVal;
+                }
+            }
             
             // Update sync badge
             const badge = document.getElementById('syncBadge');
@@ -1322,6 +1522,27 @@
             badge.style.color = '#b45309';
             badge.innerHTML = `<i class="fa-solid fa-circle-dot"></i> Cambios sin guardar`;
         }
+
+        async function saveAirbnbIcalUrl() {
+            const urlInput = document.getElementById('airbnbIcalInput');
+            const urlVal = urlInput.value.trim();
+
+            if (!urlVal) {
+                showToast('Introduzca una URL válida del calendario iCal de Airbnb', 'error');
+                return;
+            }
+
+            if (!state.configData) {
+                state.configData = {};
+            }
+            state.configData.ical_url = urlVal;
+
+            await savePricesToServer();
+            await fetchBookedDates();
+            renderCalendar();
+            showToast('Enlace iCal de Airbnb guardado y reservas sincronizadas', 'success');
+        }
+
 
         // SERVER SYNC & FILE OPERATIONS
         async function savePricesToServer() {

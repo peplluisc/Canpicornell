@@ -32,10 +32,13 @@ if (!file_exists($config_file)) {
 }
 
 $content = file_get_contents($config_file);
-$json = json_decode($content, true);
-
-if (!$json) {
-    send_json(['error' => 'El archivo de configuración de precios contiene un JSON no válido.'], 500);
+$config_json_file = __DIR__ . '/config.json';
+if (file_exists($config_json_file)) {
+    $cfg_data = json_decode(file_get_contents($config_json_file), true);
+    if (!empty($cfg_data['ical_url'])) {
+        $json['ical_url'] = $cfg_data['ical_url'];
+    }
 }
 
 send_json($json);
+

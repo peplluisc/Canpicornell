@@ -82,9 +82,27 @@ if (file_exists($alt_file)) {
     @file_put_contents($alt_file, $json_content, LOCK_EX);
 }
 
+// Update ical_url in api/config.json if provided
+if (isset($new_config['ical_url']) && !empty(trim($new_config['ical_url']))) {
+    $cfg_file = __DIR__ . '/config.json';
+    $cfg_arr = [];
+    if (file_exists($cfg_file)) {
+        $cfg_arr = json_decode(file_get_contents($cfg_file), true) ?: [];
+    }
+    $cfg_arr['ical_url'] = trim($new_config['ical_url']);
+    file_put_contents($cfg_file, json_encode($cfg_arr, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+
+    // Clear iCal cache file to force fresh sync
+    $cache_file = __DIR__ . '/../scratch/ical_cache.json';
+    if (file_exists($cache_file)) {
+        @unlink($cache_file);
+    }
+}
+
 send_response([
     'success' => true,
-    'message' => 'Configuración de precios actualizada y guardada correctamente.',
+    'message' => 'Configuración de precios y enlace iCal de Airbnb guardados correctamente.',
     'bytes_written' => $bytes,
     'total_dias' => count($new_config['precios_diarios'])
 ]);
+
