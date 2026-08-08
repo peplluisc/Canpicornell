@@ -51,8 +51,17 @@ function get_env_var($key, $default = null) {
             }
         }
         
-        // 2. Read api/config.json as a fallback
+        // 2. Read or auto-create api/config.json as a fallback
         $config_file = __DIR__ . '/config.json';
+        if (!file_exists($config_file) && empty($env['GOOGLE_CLIENT_ID'])) {
+            $default_cfg = [
+                'google_client_id' => '267555771213-8i4vs1bl8fjq86nfjtk5ns78fhs5dta4.apps.googleusercontent.com',
+                'admin_allowed_email' => 'peplluis@gmail.com',
+                'ical_url' => 'https://www.airbnb.es/calendar/ical/4944355.ics?t=a0cc19cb4fe64f71b4f453bab612bd80'
+            ];
+            @file_put_contents($config_file, json_encode($default_cfg, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+        }
+
         if (file_exists($config_file)) {
             $json_str = @file_get_contents($config_file);
             $json = json_decode($json_str, true);

@@ -1198,13 +1198,21 @@
             try {
                 const res = await apiFetch('get_prices.php');
                 if (!res.ok) {
-                    const fallbackRes = await apiFetch('configuracion_precios.json');
-                    state.configData = await fallbackRes.json();
+                    try {
+                        const fallbackRes = await apiFetch('configuracion_precios.json');
+                        state.configData = await fallbackRes.json();
+                    } catch(e) {
+                        state.configData = { precios_diarios: [], precio_noche_defecto: 120 };
+                    }
                 } else {
                     state.configData = await res.json();
                 }
                 
-                if (state.configData && state.configData.ical_url) {
+                if (!state.configData || typeof state.configData !== 'object') {
+                    state.configData = { precios_diarios: [], precio_noche_defecto: 120 };
+                }
+
+                if (state.configData.ical_url) {
                     document.getElementById('airbnbIcalInput').value = state.configData.ical_url;
                 }
 
@@ -1214,7 +1222,10 @@
                 showToast('Configuración de precios y calendario iCal cargados', 'success');
             } catch (err) {
                 console.error("Error loading prices:", err);
-                showToast('Error al cargar la configuración de precios', 'error');
+                state.configData = { precios_diarios: [], precio_noche_defecto: 120 };
+                processPricesMap();
+                renderCalendar();
+                showToast('Modo de precios por defecto activo', 'info');
             }
         }
 

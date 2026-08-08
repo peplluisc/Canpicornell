@@ -28,11 +28,19 @@ if (!file_exists($config_file)) {
 }
 
 if (!file_exists($config_file)) {
-    send_json(['error' => 'No se encontró el archivo de configuración de precios.'], 404);
+    $json = [
+        'moneda' => 'EUR',
+        'idioma' => 'es-ES',
+        'zona_horaria' => 'Europe/Madrid',
+        'precio_noche_defecto' => 120,
+        'precios_diarios' => []
+    ];
+    $target_create = __DIR__ . '/configuracion_precios.json';
+    @file_put_contents($target_create, json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+} else {
+    $content = file_get_contents($config_file);
+    $json = json_decode($content, true) ?: [];
 }
-
-$content = file_get_contents($config_file);
-$json = json_decode($content, true) ?: [];
 
 $config_json_file = __DIR__ . '/config.json';
 if (file_exists($config_json_file)) {
