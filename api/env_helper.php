@@ -9,29 +9,43 @@ function get_env_var($key, $default = null) {
     if ($env === null) {
         $env = [];
         
-        // 1. Read root .env file if available
-        $env_file = __DIR__ . '/../.env';
-        if (file_exists($env_file)) {
-            $lines = @file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            if (is_array($lines)) {
-                foreach ($lines as $line) {
-                    $line = trim($line);
-                    if (empty($line) || strpos($line, '#') === 0) {
-                        continue;
-                    }
-                    
-                    $parts = explode('=', $line, 2);
-                    if (count($parts) === 2) {
-                        $name = trim($parts[0]);
-                        $value = trim($parts[1]);
-                        
-                        // Remove wrapping quotes if present
-                        if ((strpos($value, '"') === 0 && substr($value, -1) === '"') || 
-                            (strpos($value, "'") === 0 && substr($value, -1) === "'")) {
-                            $value = substr($value, 1, -1);
+        // 1. Read .env file from multiple possible paths
+        $possible_env_files = array_unique([
+            __DIR__ . '/../.env',
+            __DIR__ . '/.env',
+            (isset($_SERVER['DOCUMENT_ROOT']) && !empty($_SERVER['DOCUMENT_ROOT']) ? rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/.env' : ''),
+            dirname(__DIR__) . '/.env'
+        ]);
+
+        foreach ($possible_env_files as $env_file) {
+            if (!empty($env_file) && file_exists($env_file)) {
+                $lines = @file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                if (is_array($lines)) {
+                    foreach ($lines as $line) {
+                        $line = trim($line);
+                        if (empty($line) || strpos($line, '#') === 0) {
+                            continue;
                         }
                         
-                        $env[$name] = $value;
+                        $parts = explode('=', $line, 2);
+                        if (count($parts) === 2) {
+                            $name = trim($parts[0]);
+                            $value = trim($parts[1]);
+                            
+                            // Strip inline comments if value is not wrapped in quotes
+                            if (strpos($value, '#') !== false && strpos($value, '"') !== 0 && strpos($value, "'") !== 0) {
+                                $value = trim(explode('#', $value, 2)[0]);
+                            }
+                            
+                            // Remove wrapping quotes if present
+                            if ((strpos($value, '"') === 0 && substr($value, -1) === '"') || 
+                                (strpos($value, "'") === 0 && substr($value, -1) === "'")) {
+                                $value = substr($value, 1, -1);
+                            }
+                            
+                            $env[strtoupper($name)] = $value;
+                            $env[$name] = $value;
+                        }
                     }
                 }
             }
@@ -45,8 +59,9 @@ function get_env_var($key, $default = null) {
             if (is_array($json)) {
                 foreach ($json as $k => $v) {
                     $upper_key = strtoupper($k);
-                    if (!isset($env[$upper_key]) && is_string($v)) {
+                    if ((!isset($env[$upper_key]) || $env[$upper_key] === '') && is_string($v)) {
                         $env[$upper_key] = $v;
+                        $env[$k] = $v;
                     }
                 }
             }
