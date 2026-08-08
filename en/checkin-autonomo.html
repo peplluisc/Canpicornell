@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self Check-In Instructions - Can Picornell</title>
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.png" type="image/png">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.3">
+    <style>
+        .directions-card {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin-top: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .step-box {
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .step-header {
+            padding: 1.25rem 1.5rem;
+            background: var(--color-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .step-num {
+            background: var(--color-accent);
+            color: white;
+            font-weight: 700;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        .step-title {
+            margin: 0;
+            font-size: 1.1rem;
+            color: white;
+            font-family: var(--font-display);
+        }
+        .step-content {
+            padding: 1.5rem;
+        }
+        .step-img-box {
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-border);
+            margin-top: 1rem;
+            background: white;
+        }
+        .step-img-box img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .code-badge {
+            display: inline-block;
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+            font-family: monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
+            letter-spacing: 2px;
+        }
+        .contact-call-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem 1.25rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            color: #1e40af;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. HEADER / NAVIGATION -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <img src="../assets/images/logo.png" alt="Can Picornell Logo" height="70" class="logo-img">
+            </a>
+            
+            <nav class="nav-desktop">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="booking.html" class="nav-link">Book Now</a>
+            </nav>
+
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="lang-selector">
+                    <a href="../es/checkin-autonomo.html" class="lang-btn">ES</a>
+                    <a href="../en/checkin-autonomo.html" class="lang-btn active">EN</a>
+                    <a href="../de/checkin-autonomo.html" class="lang-btn">DE</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. MAIN CONTENT -->
+    <main class="section container" style="max-width: 800px; margin-top: 2rem; margin-bottom: 5rem;">
+        <span class="section-tag" style="text-align: center; display: block;">SELF CHECK-IN</span>
+        <h1 style="font-family: var(--font-display); font-size: 2.25rem; color: var(--color-primary); margin-bottom: 2rem; text-align: center;">Remote Check-In Instructions</h1>
+
+        <!-- STEP 1: LOCATION -->
+        <div class="step-box">
+            <div class="step-header">
+                <span class="step-num">1</span>
+                <h2 class="step-title">Location & How to Get Here</h2>
+            </div>
+            <div class="step-content">
+                <p style="line-height: 1.6; color: var(--color-text); margin-bottom: 1rem;">
+                    For interactive GPS routes and detailed driving instructions, please see our complete arrival guide:
+                </p>
+                <div style="margin-bottom: 1.25rem;">
+                    <a href="como-llegar.html" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+                        View How to Get to Can Picornell Guide
+                    </a>
+                </div>
+                <p style="font-size: 0.95rem; color: var(--color-text-muted); line-height: 1.5;">
+                    • The street does not have an official name, but it starts right at the corner of <strong>Avenida del Cid 481</strong>.<br>
+                    • The villa is located near the end of this dead-end street on the right-hand side.
+                </p>
+            </div>
+        </div>
+
+        <!-- STEP 2: PARKING GATE -->
+        <div class="step-box">
+            <div class="step-header">
+                <span class="step-num">2</span>
+                <h2 class="step-title">Opening the Main Parking Gate</h2>
+            </div>
+            <div class="step-content">
+                <p style="line-height: 1.6; color: var(--color-text);">
+                    On the right column of the entrance gate you will find the intercom keypad. Enter your assigned code to open the parking gate automatically:
+                </p>
+                <div style="margin: 1.25rem 0; text-align: center;">
+                    <span class="code-badge">password 1</span>
+                </div>
+                <div class="step-img-box">
+                    <img src="../assets/images/checkin_intercom_code.jpg" alt="Intercom keypad at the gate entrance">
+                </div>
+                <div class="contact-call-box">
+                    <strong>Having trouble accessing?</strong><br>
+                    If you experience any issues with the code, call us at <a href="tel:+34687474158" style="font-weight:700; color:#1d4ed8;">+34 687 474 158</a> so we can open the gate remotely.
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: INSIDE GATE CONTROL -->
+        <div class="step-box">
+            <div class="step-header">
+                <span class="step-num">3</span>
+                <h2 class="step-title">Inside Parking Gate Control</h2>
+            </div>
+            <div class="step-content">
+                <p style="line-height: 1.6; color: var(--color-text);">
+                    Once inside the parking area, there is a push-button located on the wall to open or close the gate conveniently from inside.
+                </p>
+                <div class="step-img-box">
+                    <img src="../assets/images/checkin_inside_button.jpg" alt="Push button inside parking area to open and close gate">
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: CORRIDOR LIGHTING -->
+        <div class="step-box">
+            <div class="step-header">
+                <span class="step-num">4</span>
+                <h2 class="step-title">Corridor Lighting</h2>
+            </div>
+            <div class="step-content">
+                <p style="line-height: 1.6; color: var(--color-text);">
+                    Near this gate button, you will find a light switch to illuminate the corridor leading to the main house entrance.
+                </p>
+                <div class="step-img-box">
+                    <img src="../assets/images/checkin_corridor_switch.jpg" alt="Switch for pathway lighting">
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 5: HOUSE ENTRANCE AND KEYS -->
+        <div class="step-box">
+            <div class="step-header">
+                <span class="step-num">5</span>
+                <h2 class="step-title">House Entrance and Key Location</h2>
+            </div>
+            <div class="step-content">
+                <p style="line-height: 1.6; color: var(--color-text); margin-bottom: 1rem;">
+                    On the main entrance porch, you will find the numbered elements as shown in the photo:
+                </p>
+                <ul style="line-height: 1.8; color: var(--color-text); margin-left: 1.25rem; margin-bottom: 1.25rem;">
+                    <li><strong>(1) Keys Location:</strong> Placed on the outdoor table next to the porch.</li>
+                    <li><strong>(2) Outside Switches:</strong> To turn off the pathway lights after entering.</li>
+                    <li><strong>(3) Main House Door:</strong> Entrance door to the house.</li>
+                </ul>
+                <div class="step-img-box">
+                    <img src="../assets/images/checkin_house_door.jpg" alt="Main house entrance and key location">
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="index.html" class="btn btn-primary">Back to Home</a>
+        </div>
+    </main>
+
+    <!-- 3. FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="../assets/images/logo.png" alt="Can Picornell" class="footer-logo-img" height="85">
+                    <p class="footer-desc">Enjoy your dream holiday in Mallorca in our private traditional villa with swimming pool, gardens and modern comforts.</p>
+                </div>
+                <div>
+                    <h5 class="footer-links-title">Navigation</h5>
+                    <ul class="footer-list">
+                        <li class="footer-link-item"><a href="index.html">Home</a></li>
+                        <li class="footer-link-item"><a href="booking.html">Availability & Bookings</a></li>
+                        <li class="footer-link-item"><a href="https://airbnb.com/h/canpicornell" target="_blank" rel="noopener noreferrer">View on Airbnb</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="footer-links-title">Direct Contact</h5>
+                    <ul class="footer-list">
+                        <li class="footer-link-item"><a href="mailto:info@canpicornell.com">info@canpicornell.com</a></li>
+                        <li class="footer-link-item"><a href="tel:+34687474158">+34 687 474 158</a></li>
+                        <li class="footer-link-item"><a href="https://wa.me/34687474158" target="_blank" rel="noopener noreferrer">Direct WhatsApp</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 Can Picornell. All rights reserved. Official tourist licence: <a href="https://www.caib.es/cathosfront/cens?id=92053&lang=EN" target="_blank" rel="noopener noreferrer">ETV/3819</a>.</p>
+                <div class="footer-legal-links">
+                    <a href="privacy.html">Privacy</a>
+                    <a href="cookies.html">Cookies</a>
+                    <a href="legal-notice.html">Legal Notice</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>

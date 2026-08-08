@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anleitung zum selbstständigen Check-in - Can Picornell</title>
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.png" type="image/png">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.3">
+    <style>
+        .directions-card {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin-top: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .step-box {
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .step-header {
+            padding: 1.25rem 1.5rem;
+            background: var(--color-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .step-num {
+            background: var(--color-accent);
+            color: white;
+            font-weight: 700;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        .step-title {
+            margin: 0;
+            font-size: 1.1rem;
+            color: white;
+            font-family: var(--font-display);
+        }
+        .step-content {
+            padding: 1.5rem;
+        }
+        .step-img-box {
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-border);
+            margin-top: 1rem;
+            background: white;
+        }
+        .step-img-box img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .code-badge {
+            display: inline-block;
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+            font-family: monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
+            letter-spacing: 2px;
+        }
+        .contact-call-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem 1.25rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            color: #1e40af;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. HEADER / NAVIGATION -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <img src="../assets/images/logo.png" alt="Can Picornell Logo" height="70" class="logo-img">
+            </a>
+            
+            <nav class="nav-desktop">
+                <a href="index.html" class="nav-link">Startseite</a>
+                <a href="buchung.html" class="nav-link">Buchen</a>
+            </nav>
+
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="lang-selector">
+                    <a href="../es/checkin-autonomo.html" class="lang-btn">ES</a>
+                    <a href="../en/checkin-autonomo.html" class="lang-btn">EN</a>
+                    <a href="../de/checkin-autonomo.html" class="lang-btn active">DE</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. MAIN CONTENT -->
+    <main class="section container" style="max-width: 800px; margin-top: 2rem; margin-bottom: 5rem;">
+        <span class="section-tag" style="text-align: center; display: block;">SELBST-CHECK-IN</span>
+        <h1 style="font-family: var(--font-display); font-size: 2.25rem; color: var(--color-primary); margin-bottom: 2rem; text-align: center;">Anleitung zum Kontaktlosen Check-In</h1>
+
+        <!-- SCHRITT 1: STANDORT -->
+        <div class="step-box">
+            <div class="step-header">
+                <span class="step-num">1</span>
+                <h2 class="step-title">Standort & Anreise</h2>
+            </div>
+            <div class="step-content">
+                <p style="line-height: 1.6; color: var(--color-text); margin-bottom: 1rem;">
+                    Interaktive GPS-Routen und detaillierte Anfahrtsbeschreibungen finden Sie in unserer vollständigen Anreiseanleitung:
+                </p>
+                <div style="margin-bottom: 1.25rem;">
+                    <a href="como-llegar.html" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+                        Anreiseanleitung zu Can Picornell anzeigen
+                    </a>
+                </div>
+                <p style="font-size: 0.95rem; color: var(--color-text-muted); line-height: 1.5;">
+                    • Die Straße hat keinen offiziellen Namen, beginnt aber direkt an der Ecke <strong>Avenida del Cid 481</strong>.<br>
+                    • Die Finca befindet sich nahe dem Ende dieser Sackgasse auf der rechten Seite.
+                </p>
+            </div>
+        </div>
+
+        <!-- SCHRITT 2: PARKPLATZTOR -->
+        <div class="step-box">
+            <div class="step-header">
+                <span class="step-num">2</span>
+                <h2 class="step-title">Öffnung des Haupt-Einfahrtstors</h2>
+            </div>
+            <div class="step-content">
+                <p style="line-height: 1.6; color: var(--color-text);">
+                    An der rechten Säule des Einfahrtstors befindet sich die Gegensprechanlage mit Tastatur. Geben Sie den zugewiesenen Code ein, um das Tor zu öffnen:
+                </p>
+                <div style="margin: 1.25rem 0; text-align: center;">
+                    <span class="code-badge">password 1</span>
+                </div>
+                <div class="step-img-box">
+                    <img src="../assets/images/checkin_intercom_code.jpg" alt="Tastatur der Gegensprechanlage am Tor">
+                </div>
+                <div class="contact-call-box">
+                    <strong>Haben Sie Probleme beim Einlass?</strong><br>
+                    Sollten Probleme mit dem Code auftreten, rufen Sie uns unter <a href="tel:+34687474158" style="font-weight:700; color:#1d4ed8;">+34 687 474 158</a> an, damit wir das Tor aus der Ferne öffnen können.
+                </div>
+            </div>
+        </div>
+
+        <!-- SCHRITT 3: INNEN-TORSTEUERUNG -->
+        <div class="step-box">
+            <div class="step-header">
+                <span class="step-num">3</span>
+                <h2 class="step-title">Innentaster für das Einfahrtstor</h2>
+            </div>
+            <div class="step-content">
+                <p style="line-height: 1.6; color: var(--color-text);">
+                    Sobald Sie sich im Parkbereich befinden, gibt es an der Innenwand einen Drucktaster, um das Tor von innen zu öffnen oder zu schließen.
+                </p>
+                <div class="step-img-box">
+                    <img src="../assets/images/checkin_inside_button.jpg" alt="Drucktaster im Innenbereich zum Öffnen des Tors">
+                </div>
+            </div>
+        </div>
+
+        <!-- SCHRITT 4: KORRIDORBELEUCHTUNG -->
+        <div class="step-box">
+            <div class="step-header">
+                <span class="step-num">4</span>
+                <h2 class="step-title">Beleuchtung des Zugangswegs</h2>
+            </div>
+            <div class="step-content">
+                <p style="line-height: 1.6; color: var(--color-text);">
+                    In der Nähe des Tortasters finden Sie einen Lichtschalter, um den Weg zur Haustür zu beleuchten.
+                </p>
+                <div class="step-img-box">
+                    <img src="../assets/images/checkin_corridor_switch.jpg" alt="Lichtschalter für den Zugangsweg">
+                </div>
+            </div>
+        </div>
+
+        <!-- SCHRITT 5: HAUSEINGANG UND SCHLÜSSEL -->
+        <div class="step-box">
+            <div class="step-header">
+                <span class="step-num">5</span>
+                <h2 class="step-title">Hauseingang und Schlüsselübergabe</h2>
+            </div>
+            <div class="step-content">
+                <p style="line-height: 1.6; color: var(--color-text); margin-bottom: 1rem;">
+                    Auf der Veranda des Haupteingangs finden Sie die im Foto nummerierten Elemente:
+                </p>
+                <ul style="line-height: 1.8; color: var(--color-text); margin-left: 1.25rem; margin-bottom: 1.25rem;">
+                    <li><strong>(1) Schlüsselort:</strong> Auf dem Außentisch neben der Veranda.</li>
+                    <li><strong>(2) Außenschalter:</strong> Zum Ausschalten der Wegebeleuchtung nach dem Eintreten.</li>
+                    <li><strong>(3) Haupteingangstür:</strong> Zugangstür zum Haus.</li>
+                </ul>
+                <div class="step-img-box">
+                    <img src="../assets/images/checkin_house_door.jpg" alt="Haupteingang und Schlüsselort">
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="index.html" class="btn btn-primary">Zurück zur Startseite</a>
+        </div>
+    </main>
+
+    <!-- 3. FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="../assets/images/logo.png" alt="Can Picornell" class="footer-logo-img" height="85">
+                    <p class="footer-desc">Genießen Sie Ihren Traumurlaub auf Mallorca in unserer privaten traditionellen Finca mit Pool, Garten und modernem Komfort.</p>
+                </div>
+                <div>
+                    <h5 class="footer-links-title">Navigation</h5>
+                    <ul class="footer-list">
+                        <li class="footer-link-item"><a href="index.html">Startseite</a></li>
+                        <li class="footer-link-item"><a href="buchung.html">Verfügbarkeit & Buchung</a></li>
+                        <li class="footer-link-item"><a href="https://airbnb.com/h/canpicornell" target="_blank" rel="noopener noreferrer">Auf Airbnb ansehen</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="footer-links-title">Direktkontakt</h5>
+                    <ul class="footer-list">
+                        <li class="footer-link-item"><a href="mailto:info@canpicornell.com">info@canpicornell.com</a></li>
+                        <li class="footer-link-item"><a href="tel:+34687474158">+34 687 474 158</a></li>
+                        <li class="footer-link-item"><a href="https://wa.me/34687474158" target="_blank" rel="noopener noreferrer">Direkt über WhatsApp</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 Can Picornell. Alle Rechte vorbehalten. Offizielle Lizenz: <a href="https://www.caib.es/cathosfront/cens?id=92053&lang=DE" target="_blank" rel="noopener noreferrer">ETV/3819</a>.</p>
+                <div class="footer-legal-links">
+                    <a href="datenschutz.html">Datenschutz</a>
+                    <a href="cookies.html">Cookies</a>
+                    <a href="impressum.html">Impressum</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>
