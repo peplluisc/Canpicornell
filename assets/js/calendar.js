@@ -453,6 +453,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function formatMoney(val) {
+        if (val === null || val === undefined || isNaN(val)) return '0';
+        const num = Number(val);
+        return num.toFixed(2).replace(/\.00$/, '');
+    }
+
     function renderQuoteBreakdown(data) {
         const pr = data.pricing;
         totalPriceInput.value = pr.total;
@@ -466,32 +472,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div class="budget-row">
                     <span>${data.nights} ${data.nights > 1 ? t.nights : t.night} x ${Math.round(pr.base_accommodation / data.nights)}€</span>
-                    <span>${pr.base_accommodation}€</span>
+                    <span>${formatMoney(pr.base_accommodation)}€</span>
                 </div>
                 
                 <div class="budget-row">
                     <span>${t.cleaningFee}</span>
-                    <span>${pr.cleaning_fee}€</span>
+                    <span>${formatMoney(pr.cleaning_fee)}€</span>
                 </div>
                 
                 <div class="budget-row" style="color: #4B5563;">
                     <span>${t.ecoTax}${taxInclusionText}</span>
-                    <span>${pr.tourist_tax.total}€</span>
+                    <span>${formatMoney(pr.tourist_tax.total)}€</span>
                 </div>
                 
                 <div class="budget-row total">
                     <span>${t.total}</span>
-                    <span>${pr.total}€</span>
+                    <span>${formatMoney(pr.total)}€</span>
                 </div>
 
                 <div class="budget-row highlight">
                     <span>${t.deposit}</span>
-                    <span>${pr.deposit_required}€</span>
+                    <span>${formatMoney(pr.deposit_required)}€</span>
                 </div>
 
                 <div class="budget-row pending" style="margin-top: 0.5rem; padding: 0 0.75rem;">
                     <span>${t.balance}</span>
-                    <span>${pr.pending_balance}€</span>
+                    <span>${formatMoney(pr.pending_balance)}€</span>
                 </div>
                 
                 <div class="budget-row pending" style="padding: 0 0.75rem; font-size: 0.8rem; font-style: italic;">
@@ -508,7 +514,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update mobile bar price display
         const mobilePriceEl = document.getElementById('mobile-bar-price-val');
         if (mobilePriceEl) {
-            mobilePriceEl.textContent = `Total: ${pr.total}€`;
+            mobilePriceEl.textContent = `Total: ${formatMoney(pr.total)}€`;
         }
 
         submitBtn.disabled = false;

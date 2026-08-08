@@ -173,25 +173,22 @@ if (isset($config['descuentos']['reglas']) && is_array($config['descuentos']['re
 }
 
 $discount_amount = round(($base_accommodation * $discount_pct) / 100, 2);
-$total_accommodation = $base_accommodation - $discount_amount;
+$total_accommodation = round($base_accommodation - $discount_amount, 2);
 
-$cleaning_fee = isset($config['cleaning_fee']) ? floatval($config['cleaning_fee']) : 120.00;
+$cleaning_fee = round(isset($config['cleaning_fee']) ? floatval($config['cleaning_fee']) : 120.00, 2);
 
 // Sustainable Tourism Tax (EcoTasa)
 $tax_config = $config['tourist_tax'];
-$tax_rate = isset($tax_config['rate_per_adult_per_night']) ? floatval($tax_config['rate_per_adult_per_night']) : 2.20;
-$tax_total = $adults * $nights * $tax_rate;
+$tax_rate = round(isset($tax_config['rate_per_adult_per_night']) ? floatval($tax_config['rate_per_adult_per_night']) : 2.20, 2);
+$tax_total = round($adults * $nights * $tax_rate, 2);
 
 // Total calculation
-$total_cost = $total_accommodation + $cleaning_fee; // Exclude EcoTasa from online total if paid in cash, or include depending on setting
-if (isset($tax_config['included_in_total']) && $tax_config['included_in_total']) {
-    $total_cost += $tax_total;
-}
+$total_cost = round($total_accommodation + $cleaning_fee + (isset($tax_config['included_in_total']) && $tax_config['included_in_total'] ? $tax_total : 0), 2);
 
 // Deposit and balance
 $deposit_pct = isset($config['deposit_percentage']) ? intval($config['deposit_percentage']) : 30;
 $deposit_required = round(($total_cost * $deposit_pct) / 100, 2);
-$pending_balance = $total_cost - $deposit_required;
+$pending_balance = round($total_cost - $deposit_required, 2);
 
 // Balance due date (e.g. 30 days before check-in, or today if check-in is close)
 $due_days = isset($config['second_payment_days_before_checkin']) ? intval($config['second_payment_days_before_checkin']) : 30;
