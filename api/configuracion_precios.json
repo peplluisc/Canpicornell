@@ -2,6 +2,7 @@
   "moneda": "EUR",
   "idioma": "es-ES",
   "zona_horaria": "Europe/Madrid",
+  "precio_noche_defecto": 120,
   "periodo": {
     "fecha_inicio": "2026-01-01",
     "fecha_fin": "2026-12-31"

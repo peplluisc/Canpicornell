@@ -56,6 +56,10 @@ foreach ($new_config['precios_diarios'] as $index => $item) {
     }
 }
 
+if (isset($new_config['precio_noche_defecto']) && (!is_numeric($new_config['precio_noche_defecto']) || floatval($new_config['precio_noche_defecto']) < 0)) {
+    send_response(['error' => 'El precio por noche por defecto debe ser un número válido mayor o igual a 0.'], 400);
+}
+
 $target_file = __DIR__ . '/configuracion_precios.json';
 $backup_file = __DIR__ . '/configuracion_precios.json.bak';
 

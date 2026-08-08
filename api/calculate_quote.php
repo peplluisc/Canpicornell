@@ -123,6 +123,9 @@ while ($temp_time < $checkout_time) {
     if (isset($daily_prices_map[$temp_date])) {
         $rate = $daily_prices_map[$temp_date];
         $season_name = 'especifico';
+    } elseif (isset($config['precio_noche_defecto']) && is_numeric($config['precio_noche_defecto'])) {
+        $rate = floatval($config['precio_noche_defecto']);
+        $season_name = 'defecto';
     } else {
         $rate = 120; // default low season
         $season_name = 'low';

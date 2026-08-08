@@ -32,6 +32,8 @@ if (!file_exists($config_file)) {
 }
 
 $content = file_get_contents($config_file);
+$json = json_decode($content, true) ?: [];
+
 $config_json_file = __DIR__ . '/config.json';
 if (file_exists($config_json_file)) {
     $cfg_data = json_decode(file_get_contents($config_json_file), true);
