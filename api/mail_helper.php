@@ -299,27 +299,65 @@ function send_booking_email($booking, $template_type) {
     $final_html = str_replace(array_keys($replacements), array_values($replacements), $email_html);
 
     // Setup headers
-    $headers = "MIME-Version: 1.0" . "\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8" . "\r\n";
-    $headers .= "From: " . get_env_var('SMTP_FROM_NAME', 'Can Picornell') . " <" . get_env_var('SMTP_FROM_EMAIL', $contact_email) . ">" . "\r\n";
-    $headers .= "Reply-To: " . $contact_email . "\r\n";
-    
-    // Check SMTP override or native php mail()
-    $smtp_host = get_env_var('SMTP_HOST', '');
-    if (!empty($smtp_host)) {
-        // Here you would integrate PHPMailer or a real SMTP sender.
-        // For the Hostgator environment, standard PHP mail() with correct headers is standard and pre-configured.
-        // We will default to PHP mail() and log the SMTP settings fallback.
-        error_log("SMTP is configured but we are using PHP mail() for compatibility. To use true SMTP, configure PHPMailer in mail_helper.php");
-    }
+    $from_name = get_env_var('SMTP_FROM_NAME', 'Can Picornell');
+    $from_email = get_env_var('SMTP_FROM_EMAIL', $contact_email);
+    $mail_params = "-f" . $from_email;
 
-    // Send email to Guest
-    $guest_sent = mail($booking['guest_email'], $subject, $final_html, $headers);
+    $guest_headers = "MIME-Version: 1.0" . "\r\n";
+    $guest_headers .= "Content-Type: text/html; charset=UTF-8" . "\r\n";
+    $guest_headers .= "From: " . $from_name . " <" . $from_email . ">" . "\r\n";
+    $guest_headers .= "Reply-To: " . $contact_email . "\r\n";
 
-    // Send a copy to the owner if it is a new request or payment alert
+    // 1. Send email to Guest
+    $guest_sent = @mail($booking['guest_email'], $subject, $final_html, $guest_headers, $mail_params);
+
+    // 2. Send dedicated notification email to Owner with full guest details
     if (in_array($template_type, ['solicitud_recibida', 'reserva_confirmada', 'pago_total', 'cancelacion'])) {
-        $owner_subject = "[PROPIETARIO] " . $subject;
-        mail($contact_email, $owner_subject, $final_html, $headers);
+        $guest_name_esc = htmlspecialchars($booking['guest_name'] ?? '', ENT_QUOTES, 'UTF-8');
+        $guest_email_esc = htmlspecialchars($booking['guest_email'] ?? '', ENT_QUOTES, 'UTF-8');
+        $guest_phone_esc = htmlspecialchars($booking['guest_phone'] ?? 'No especificado', ENT_QUOTES, 'UTF-8');
+        $guest_country_esc = htmlspecialchars($booking['guest_country'] ?? 'No especificado', ENT_QUOTES, 'UTF-8');
+
+        $owner_subject = "[NUEVA RESERVA] Nº {$booking['request_number']} - {$guest_name_esc}";
+
+        $owner_body = "<h2>Nueva Solicitud de Reserva Recibida</h2>
+        <p>Se ha recibido una nueva solicitud de reserva directa en la web oficial de Can Picornell.</p>
+
+        <h3 style='font-family: Georgia, serif; color: #165D81; margin-top: 25px;'>Datos del Huésped / Cliente</h3>
+        <table class='summary-table'>
+            <tr>
+                <td><strong>Nombre y Apellidos:</strong></td>
+                <td class='strong'>{$guest_name_esc}</td>
+            </tr>
+            <tr>
+                <td><strong>Correo electrónico:</strong></td>
+                <td><a href='mailto:{$guest_email_esc}'>{$guest_email_esc}</a></td>
+            </tr>
+            <tr>
+                <td><strong>Teléfono móvil:</strong></td>
+                <td><a href='tel:{$guest_phone_esc}'>{$guest_phone_esc}</a></td>
+            </tr>
+            <tr>
+                <td><strong>País de residencia:</strong></td>
+                <td>{$guest_country_esc}</td>
+            </tr>
+            <tr>
+                <td><strong>Idioma de navegación:</strong></td>
+                <td><strong>{$origin_lang_text}</strong></td>
+            </tr>
+        </table>
+        ";
+
+        $owner_replacements = $replacements;
+        $owner_replacements['{{EMAIL_BODY}}'] = $owner_body;
+        $owner_final_html = str_replace(array_keys($owner_replacements), array_values($owner_replacements), $email_html);
+
+        $owner_headers = "MIME-Version: 1.0" . "\r\n";
+        $owner_headers .= "Content-Type: text/html; charset=UTF-8" . "\r\n";
+        $owner_headers .= "From: " . $from_name . " <" . $from_email . ">" . "\r\n";
+        $owner_headers .= "Reply-To: " . $guest_name_esc . " <" . $guest_email_esc . ">" . "\r\n";
+
+        @mail($contact_email, $owner_subject, $owner_final_html, $owner_headers, $mail_params);
     }
 
     return $guest_sent;

@@ -290,6 +290,8 @@ try {
         'request_number' => $request_number,
         'guest_name' => $name,
         'guest_email' => $email,
+        'guest_phone' => $phone,
+        'guest_country' => $country,
         'preferred_language' => $language,
         'checkin_date' => $checkin,
         'checkout_date' => $checkout,
