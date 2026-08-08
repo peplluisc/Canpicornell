@@ -90,23 +90,22 @@
     </style>
 </head>
 <body>
-    <!-- 1. HEADER / NAVIGATION -->
     <header class="header">
         <div class="header-container">
-            <a href="index.html" class="logo">
-                <img src="../assets/images/logo.png" alt="Can Picornell Logo" height="70" class="logo-img">
+            <a href="index.html" class="logo-link">
+                <img src="../assets/images/logo.png" alt="Can Picornell" class="logo-img" height="48">
             </a>
             
-            <nav class="nav-desktop">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="booking.html" class="nav-link">Book Now</a>
-            </nav>
-
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="header-lang-wrapper" style="margin-left: auto;">
                 <div class="lang-selector">
-                    <a href="../es/checkin-autonomo.html" class="lang-btn">ES</a>
-                    <a href="../en/checkin-autonomo.html" class="lang-btn active">EN</a>
-                    <a href="../de/checkin-autonomo.html" class="lang-btn">DE</a>
+                    <button class="lang-btn" aria-label="Select language">
+                        <span>English</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <ul class="lang-dropdown">
+                        <li class="lang-item"><a href="../es/checkin-autonomo.html">Español</a></li>
+                        <li class="lang-item"><a href="../de/checkin-autonomo.html">Deutsch</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
