@@ -10,7 +10,19 @@ Options -Indexes
     Deny from all
 </FilesMatch>
 
-# 4. Redirecciones amigables para compartir con los huéspedes
+# 4. Habilitar URLs limpias (permite acceder a cualquier página sin escribir .html)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}\.html -f
+    RewriteRule ^(.*)$ $1.html [L]
+</IfModule>
+
+# 5. Redirecciones amigables directas (Shortcuts cortos)
 Redirect /como-llegar /es/como-llegar.html
 Redirect /how-to-get-here /en/como-llegar.html
 Redirect /anreise /de/como-llegar.html
+Redirect /checkin /es/checkin-autonomo.html
+Redirect /checkin-es /es/checkin-autonomo.html
+Redirect /checkin-en /en/checkin-autonomo.html
+Redirect /checkin-de /de/checkin-autonomo.html
