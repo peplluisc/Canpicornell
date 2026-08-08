@@ -1,3 +1,11 @@
-﻿.env
+.env
 .env.*
 !.env.example
+
+# Runtime server data & configuration files (prices, backups, iCal cache)
+api/configuracion_precios.json
+api/configuracion_precios.json.bak
+api/booking_config.json
+api/config.json
+scratch/
+*.json.bak

@@ -1712,6 +1712,8 @@
                     showToast(`JSON cargado correctamente (${daysCount} tarifas personalizadas). Haga clic en "Guardar en Servidor" para aplicar.`, 'success');
                 } catch (err) {
                     showToast('Error al procesar el archivo JSON', 'error');
+                } finally {
+                    event.target.value = '';
                 }
             };
             reader.readAsText(file);
