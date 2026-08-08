@@ -208,12 +208,23 @@ function send_booking_email($booking, $template_type) {
     if ($children > 0) $guests_detail .= ", {$children} " . $lbl['children'];
     if ($babies > 0) $guests_detail .= ", {$babies} " . $lbl['babies'];
 
+    $lang_names = [
+        'es' => 'Español (ES)',
+        'en' => 'English (EN)',
+        'de' => 'Deutsch (DE)'
+    ];
+    $origin_lang_text = isset($lang_names[$lang]) ? $lang_names[$lang] : strtoupper($lang);
+
     $summary_html = "
     <h3 style='font-family: Georgia, serif; color: #165D81; margin-top: 30px;'>{$lbl['summary_title']}</h3>
     <table class='summary-table'>
         <tr>
             <td><strong>{$req_num_lbl}</strong></td>
             <td class='strong'>{$booking['request_number']}</td>
+        </tr>
+        <tr>
+            <td><strong>Idioma de navegación:</strong></td>
+            <td><strong>{$origin_lang_text}</strong></td>
         </tr>
         <tr>
             <td><strong>{$lbl['checkin']}</strong></td>

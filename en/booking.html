@@ -211,41 +211,8 @@
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="form-lang-pref" class="form-label">Preferred language</label>
-                                <select id="form-lang-pref" name="language" class="form-input" required>
-                                    <option value="es">Español</option>
-                                    <option value="en" selected>English</option>
-                                    <option value="de">Deutsch</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="form-channel-pref" class="form-label">Contact channel</label>
-                                <select id="form-channel-pref" name="contact_channel" class="form-input" required>
-                                    <option value="email" selected>Email</option>
-                                    <option value="whatsapp">WhatsApp</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Block 3: Additional information -->
-                        <h4 style="font-size: 0.95rem; text-transform: uppercase; color: var(--color-primary); margin: 2rem 0 0.75rem 0; letter-spacing: 0.5px; border-bottom: 1px solid var(--color-border); padding-bottom: 0.25rem;">3. Additional info</h4>
-
-                        <div class="form-group">
-                            <label for="form-arrival" class="form-label">Estimated arrival time</label>
-                            <input type="text" id="form-arrival" name="arrival_time" class="form-input" placeholder="e.g. 16:30 or Flight BA4210 at 18:00">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="form-message" class="form-label">Special requests</label>
-                            <textarea id="form-message" name="special_requests" class="form-input" placeholder="Let us know if you need cots, high chairs, are bringing a pet, etc."></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="form-discovery" class="form-label">How did you hear about us? (Optional)</label>
-                            <input type="text" id="form-discovery" name="how_knew" class="form-input" placeholder="e.g. Friends recommendation, search engine, Instagram...">
-                        </div>
+                        <!-- Hidden fields for language and pricing -->
+                        <input type="hidden" id="form-language" name="language" value="en">
 
                         <!-- Hidden fields for pricing calculations -->
                         <input type="hidden" id="form-totalprice" name="totalprice">

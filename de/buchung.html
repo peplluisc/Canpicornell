@@ -211,41 +211,8 @@
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="form-lang-pref" class="form-label">Bevorzugte Sprache</label>
-                                <select id="form-lang-pref" name="language" class="form-input" required>
-                                    <option value="es">Español</option>
-                                    <option value="en">English</option>
-                                    <option value="de" selected>Deutsch</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="form-channel-pref" class="form-label">Kommunikationskanal</label>
-                                <select id="form-channel-pref" name="contact_channel" class="form-input" required>
-                                    <option value="email" selected>E-Mail</option>
-                                    <option value="whatsapp">WhatsApp</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Block 3: Additional information -->
-                        <h4 style="font-size: 0.95rem; text-transform: uppercase; color: var(--color-primary); margin: 2rem 0 0.75rem 0; letter-spacing: 0.5px; border-bottom: 1px solid var(--color-border); padding-bottom: 0.25rem;">3. Zusätzliche Infos</h4>
-
-                        <div class="form-group">
-                            <label for="form-arrival" class="form-label">Voraussichtliche Ankunftszeit</label>
-                            <input type="text" id="form-arrival" name="arrival_time" class="form-input" placeholder="z.B. 16:30 oder Flug LH4210 um 18:00 Uhr">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="form-message" class="form-label">Sonderwünsche</label>
-                            <textarea id="form-message" name="special_requests" class="form-input" placeholder="Geben Sie hier an, ob Sie Babybetten, einen Hochstuhl benötigen, ein Haustier mitbringen, etc."></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="form-discovery" class="form-label">Wie haben Sie uns gefunden? (Optional)</label>
-                            <input type="text" id="form-discovery" name="how_knew" class="form-input" placeholder="z.B. Empfehlung, Suchmaschine, Instagram...">
-                        </div>
+                        <!-- Hidden fields for language and pricing -->
+                        <input type="hidden" id="form-language" name="language" value="de">
 
                         <!-- Hidden fields for pricing calculations -->
                         <input type="hidden" id="form-totalprice" name="totalprice">
