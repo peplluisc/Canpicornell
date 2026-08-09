@@ -978,6 +978,16 @@
         let activeOrderDetail = null;
         let lastImportParsed = null;
 
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         const STATUS_BADGES = {
             'PENDING_REVIEW': '<span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pendiente de revisar</span>',
             'APPROVED': '<span class="badge badge-accent"><i class="fa-solid fa-check"></i> Aprobado</span>',
