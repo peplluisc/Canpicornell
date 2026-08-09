@@ -34,6 +34,41 @@ function run_db_migrations(PDO $pdo, string $driver) {
     $current_version = get_shop_schema_version($pdo);
     if ($current_version < 1) {
         set_shop_schema_version($pdo, 1);
+        $current_version = 1;
+    }
+
+    // 5. Version 2 Migration: Add purchase_status column to shop_order_items
+    if ($current_version < 2) {
+        migrate_schema_v2($pdo, $driver);
+        set_shop_schema_version($pdo, 2);
+    }
+}
+
+function migrate_schema_v2(PDO $pdo, string $driver): void {
+    try {
+        if ($driver === 'sqlite') {
+            // Check if column exists
+            $cols = $pdo->query("PRAGMA table_info(shop_order_items)")->fetchAll(PDO::FETCH_ASSOC);
+            $has_col = false;
+            foreach ($cols as $c) {
+                if ($c['name'] === 'purchase_status') {
+                    $has_col = true;
+                    break;
+                }
+            }
+            if (!$has_col) {
+                $pdo->exec("ALTER TABLE shop_order_items ADD COLUMN purchase_status TEXT NOT NULL DEFAULT 'PENDING';");
+                $pdo->exec("UPDATE shop_order_items SET purchase_status = 'PURCHASED' WHERE is_purchased = 1;");
+            }
+        } else if ($driver === 'mysql') {
+            $cols = $pdo->query("SHOW COLUMNS FROM shop_order_items LIKE 'purchase_status'")->fetchAll();
+            if (empty($cols)) {
+                $pdo->exec("ALTER TABLE shop_order_items ADD COLUMN purchase_status VARCHAR(20) NOT NULL DEFAULT 'PENDING';");
+                $pdo->exec("UPDATE shop_order_items SET purchase_status = 'PURCHASED' WHERE is_purchased = 1;");
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Schema v2 migration error: " . $e->getMessage());
     }
 }
 

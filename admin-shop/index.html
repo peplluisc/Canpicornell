@@ -281,6 +281,7 @@
         .btn-accent:hover { background: var(--accent-hover); }
         .btn-secondary { background: #f1f5f9; color: var(--text-main); border: 1px solid var(--border-color); }
         .btn-secondary:hover { background: #e2e8f0; }
+        .btn-danger { background: var(--danger); color: white; }
         .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
 
         .table-responsive {
@@ -311,15 +312,16 @@
 
         .badge {
             display: inline-block;
-            padding: 2px 8px;
+            padding: 3px 8px;
             border-radius: 12px;
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 700;
         }
         .badge-success { background: #dcfce7; color: #15803d; }
         .badge-danger { background: #fee2e2; color: #b91c1c; }
         .badge-info { background: #e0f2fe; color: #0369a1; }
         .badge-warning { background: #fef3c7; color: #b45309; }
+        .badge-accent { background: var(--accent-light); color: var(--accent-hover); }
 
         .form-grid {
             display: grid;
@@ -362,7 +364,7 @@
         .modal-container {
             background: white;
             border-radius: var(--radius);
-            max-width: 650px;
+            max-width: 800px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
@@ -447,25 +449,71 @@
         <!-- VIEW 2: DASHBOARD TIENDA -->
         <div id="dashboardView" style="display: none;">
             <nav class="admin-nav-tabs">
-                <button class="tab-btn active" onclick="switchTab('tokens')">
+                <button id="tab-btn-orders" class="tab-btn" onclick="switchTab('orders')">
+                    <i class="fa-solid fa-cart-shopping"></i> Pedidos
+                    <span id="pending-orders-badge" class="badge badge-warning" style="display: none;">0</span>
+                </button>
+                <button id="tab-btn-tokens" class="tab-btn active" onclick="switchTab('tokens')">
                     <i class="fa-solid fa-key"></i> Enlaces Privados
                 </button>
-                <button class="tab-btn" onclick="switchTab('products')">
+                <button id="tab-btn-products" class="tab-btn" onclick="switchTab('products')">
                     <i class="fa-solid fa-boxes-stacked"></i> Productos
                 </button>
-                <button class="tab-btn" onclick="switchTab('categories')">
+                <button id="tab-btn-categories" class="tab-btn" onclick="switchTab('categories')">
                     <i class="fa-solid fa-tags"></i> Categorías
                 </button>
-                <button class="tab-btn" onclick="switchTab('settings')">
+                <button id="tab-btn-settings" class="tab-btn" onclick="switchTab('settings')">
                     <i class="fa-solid fa-sliders"></i> Configuración
-                </button>
-                <button class="tab-btn disabled" title="Fase 4">
-                    <i class="fa-solid fa-cart-shopping"></i> Pedidos <span class="badge badge-info">Fase 4</span>
                 </button>
                 <button class="tab-btn disabled" title="Fase 5">
                     <i class="fa-solid fa-cloud-arrow-down"></i> Importar <span class="badge badge-info">Fase 5</span>
                 </button>
             </nav>
+
+            <!-- TAB 0: PEDIDOS (FASE 4) -->
+            <div id="tab-orders" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fa-solid fa-cart-shopping"></i> Listado de Pedidos</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <select id="orders-status-filter" class="form-input" style="width: auto;" onchange="loadOrdersList()">
+                                <option value="">Ver todos los estados activos</option>
+                                <option value="PENDING_REVIEW">Pendiente de revisar</option>
+                                <option value="APPROVED">Aprobado (Listo para comprar)</option>
+                                <option value="PURCHASED">Comprado</option>
+                                <option value="DELIVERED">Entregado</option>
+                                <option value="PAID">Pagado</option>
+                                <option value="CANCELLED">Cancelado</option>
+                            </select>
+                            <input type="text" id="orders-search-input" class="form-input" placeholder="Buscar huésped, reserva..." style="width: 220px;" oninput="loadOrdersList()">
+                            <button class="btn btn-secondary btn-sm" onclick="loadOrdersList()">
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nº Pedido</th>
+                                    <th>Huésped</th>
+                                    <th>Reserva</th>
+                                    <th>Llegada</th>
+                                    <th>Salida</th>
+                                    <th>Fecha Envío</th>
+                                    <th>Items</th>
+                                    <th>Importe Total</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                <tr><td colspan="10" style="text-align:center;">Cargando pedidos...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
             <!-- TAB 1: ENLACES PRIVADOS / TOKENS -->
             <div id="tab-tokens" class="tab-content">
@@ -499,7 +547,6 @@
                         </button>
                     </form>
 
-                    <!-- CONTENEDOR RESULTADO ENLACE GENERADO -->
                     <div id="generated-link-box" style="display: none; margin-top: 1.5rem; background: var(--accent-light); padding: 1.25rem; border-radius: 8px; border: 1px solid #f59e0b;">
                         <h4 style="color: #92400e; margin-bottom: 0.5rem;"><i class="fa-solid fa-circle-check"></i> Enlace Criptográfico Generado</h4>
                         <p style="font-size: 0.85rem; color: #78350F; margin-bottom: 1rem;">Copia este enlace para enviarlo por WhatsApp o Email al huésped. El token completo no se volverá a mostrar por seguridad.</p>
@@ -623,6 +670,20 @@
         </div>
     </main>
 
+    <!-- MODAL DETALLE PEDIDO -->
+    <div id="modal-order-detail" class="modal-backdrop" style="display: none;">
+        <div class="modal-container" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="modal-order-title" style="font-family: 'Outfit'; color:var(--primary);">Detalle de Pedido</h3>
+                <button class="btn btn-secondary btn-sm" onclick="closeOrderDetailModal()">&times;</button>
+            </div>
+            
+            <div id="order-detail-content">
+                <p style="text-align:center; padding:2rem;">Cargando detalle...</p>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL PRODUCTO -->
     <div id="modal-product" class="modal-backdrop" style="display: none;">
         <div class="modal-container">
@@ -677,7 +738,6 @@
                     <label><input type="checkbox" id="prod-featured"> Destacado</label>
                 </div>
 
-                <!-- TRADUCCIONES POR IDIOMA -->
                 <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
                     <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Traducciones y Enlaces de Origen</h4>
                     <div class="lang-tabs">
@@ -800,8 +860,18 @@
         let googleClientId = '';
         let categoriesData = [];
         let productsData = [];
+        let activeOrderDetail = null;
 
-        // ON LOAD
+        const STATUS_BADGES = {
+            'PENDING_REVIEW': '<span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pendiente de revisar</span>',
+            'APPROVED': '<span class="badge badge-accent"><i class="fa-solid fa-check"></i> Aprobado</span>',
+            'PURCHASED': '<span class="badge badge-info"><i class="fa-solid fa-cart-shopping"></i> Comprado</span>',
+            'DELIVERED': '<span class="badge badge-success"><i class="fa-solid fa-truck"></i> Entregado</span>',
+            'PAID': '<span class="badge badge-success"><i class="fa-solid fa-money-bill-check"></i> Pagado</span>',
+            'CANCELLED': '<span class="badge badge-danger"><i class="fa-solid fa-ban"></i> Cancelado</span>',
+            'DRAFT': '<span class="badge badge-secondary">Borrador Huésped</span>'
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthStatus();
         });
@@ -817,7 +887,7 @@
                         document.getElementById('userPanel').style.display = 'flex';
                         if (data.email) document.getElementById('userEmail').textContent = data.email;
                         
-                        // Load data
+                        loadOrdersList();
                         loadBookingsSelect();
                         loadTokensList();
                         loadCategoriesList();
@@ -829,8 +899,7 @@
                         document.getElementById('userPanel').style.display = 'none';
                         initGoogleAuth();
                     }
-                })
-                .catch(err => console.error('Auth error:', err));
+                });
         }
 
         function initGoogleAuth() {
@@ -868,9 +937,291 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
             
-            event.currentTarget.classList.add('active');
+            document.getElementById('tab-btn-' + tabId)?.classList.add('active');
             document.getElementById('tab-' + tabId).style.display = 'block';
+
+            if (tabId === 'orders') loadOrdersList();
         }
+
+        // --- TAB 0: PEDIDOS (FASE 4) ---
+        function loadOrdersList() {
+            const statusFilter = document.getElementById('orders-status-filter').value;
+            const search = document.getElementById('orders-search-input').value;
+
+            fetch(`../api/shop/admin/orders.php?status=${encodeURIComponent(statusFilter)}&q=${encodeURIComponent(search)}`)
+                .then(res => res.json())
+                .then(data => {
+                    const badge = document.getElementById('pending-orders-badge');
+                    if (data.pending_review_count > 0) {
+                        badge.textContent = data.pending_review_count;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+
+                    const tbody = document.getElementById('orders-table-body');
+                    tbody.innerHTML = '';
+                    if (!data.orders || data.orders.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No hay pedidos registrados.</td></tr>';
+                        return;
+                    }
+
+                    data.orders.forEach(o => {
+                        const stBadge = STATUS_BADGES[o.status] || o.status;
+                        const subDate = o.submitted_at ? o.submitted_at.substring(0, 16) : o.created_at.substring(0, 16);
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><strong>${o.order_number}</strong></td>
+                                <td>${o.guest_name}</td>
+                                <td><code>${o.request_number}</code></td>
+                                <td>${o.checkin_date}</td>
+                                <td>${o.checkout_date}</td>
+                                <td>${subDate}</td>
+                                <td><span class="badge badge-secondary">${o.items_count} prod.</span></td>
+                                <td><strong>${o.total_formatted}</strong></td>
+                                <td>${stBadge}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" onclick="openOrderDetail(${o.id})">
+                                        <i class="fa-solid fa-eye"></i> Detalle
+                                    </button>
+                                    ${(o.status === 'APPROVED' || o.status === 'PURCHASED') ? `
+                                        <a href="checklist.html?id=${o.id}" target="_blank" class="btn btn-accent btn-sm" style="text-decoration:none;">
+                                            <i class="fa-solid fa-list-check"></i> Checklist
+                                        </a>
+                                    ` : ''}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        function openOrderDetail(id) {
+            document.getElementById('modal-order-detail').style.display = 'flex';
+            const container = document.getElementById('order-detail-content');
+            container.innerHTML = '<p style="text-align:center; padding:2rem;">Cargando detalle del pedido...</p>';
+
+            fetch(`../api/shop/admin/orders.php?id=${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        container.innerHTML = `<p style="color:red;">${data.error}</p>`;
+                        return;
+                    }
+                    activeOrderDetail = data.order;
+                    renderOrderDetailView(activeOrderDetail);
+                });
+        }
+
+        function renderOrderDetailView(o) {
+            const container = document.getElementById('order-detail-content');
+            const isEditable = (o.status === 'PENDING_REVIEW');
+            const stBadge = STATUS_BADGES[o.status] || o.status;
+
+            let itemsRows = '';
+            o.items.forEach(it => {
+                const imgTag = it.image_url ? `<img src="${it.image_url}" style="width:36px; height:36px; object-fit:contain; border-radius:4px;">` : '📦';
+                const stItemBadge = it.purchase_status === 'PURCHASED' ? '<span class="badge badge-success">Comprado</span>' : (it.purchase_status === 'UNAVAILABLE' ? '<span class="badge badge-danger">Agotado</span>' : '<span class="badge badge-secondary">Pendiente</span>');
+
+                const qtyInput = isEditable ? `<input type="number" value="${it.quantity}" style="width:55px; padding:4px;" min="1" onchange="updateOrderItemQty(${it.item_id}, this.value, ${it.unit_price_cents})">` : `<strong>${it.quantity}</strong>`;
+                const priceInput = isEditable ? `<input type="number" step="0.01" value="${(it.unit_price_cents / 100).toFixed(2)}" style="width:75px; padding:4px;" onchange="updateOrderItemPrice(${it.item_id}, ${it.quantity}, this.value)"> €` : `${it.unit_price_formatted}`;
+                const removeBtn = isEditable ? `<button class="btn btn-danger btn-sm" onclick="removeOrderItem(${it.item_id})">&times;</button>` : '';
+
+                itemsRows += `
+                    <tr>
+                        <td>${imgTag}</td>
+                        <td><strong>${it.product_name_snapshot}</strong><br><small style="color:var(--text-muted);">${it.brand || ''} ${it.format_text || ''}</small></td>
+                        <td>${qtyInput}</td>
+                        <td>${priceInput}</td>
+                        <td><strong>${it.total_price_formatted}</strong></td>
+                        <td>${stItemBadge}</td>
+                        <td>${removeBtn}</td>
+                    </tr>
+                `;
+            });
+
+            // Add Product Dropdown HTML if editable
+            let addProductHtml = '';
+            if (isEditable) {
+                let prodOpts = '<option value="">-- Seleccionar producto para añadir --</option>';
+                productsData.forEach(p => {
+                    const name = p.translations.es ? p.translations.es.name : p.sku;
+                    prodOpts += `<option value="${p.id}">${name} (${(p.calculated_final_price_cents/100).toFixed(2)} €)</option>`;
+                });
+                addProductHtml = `
+                    <div style="background:#f8fafc; border:1px solid var(--border-color); padding:1rem; border-radius:8px; margin-top:1rem; display:flex; gap:10px; align-items:center;">
+                        <select id="add-prod-select" class="form-input" style="flex:1;">${prodOpts}</select>
+                        <input type="number" id="add-prod-qty" class="form-input" value="1" min="1" style="width:70px;">
+                        <button class="btn btn-accent" onclick="handleAddProductToOrder()"><i class="fa-solid fa-plus"></i> Añadir Línea</button>
+                    </div>
+                `;
+            }
+
+            // Action Buttons based on Status
+            let actionButtonsHtml = '';
+            if (o.status === 'PENDING_REVIEW') {
+                actionButtonsHtml += `<button class="btn btn-accent" onclick="transitionOrderStatus('approve')"><i class="fa-solid fa-circle-check"></i> APROBAR PEDIDO</button>`;
+                actionButtonsHtml += `<button class="btn btn-danger" onclick="transitionOrderStatus('cancel')"><i class="fa-solid fa-ban"></i> Cancelar Pedido</button>`;
+            } else if (o.status === 'APPROVED') {
+                actionButtonsHtml += `<a href="checklist.html?id=${o.id}" target="_blank" class="btn btn-primary" style="text-decoration:none;"><i class="fa-solid fa-list-check"></i> ABRIR LISTA MÓVIL SUPERMERCADO</a>`;
+                actionButtonsHtml += `<button class="btn btn-accent" onclick="transitionOrderStatus('mark_purchased')"><i class="fa-solid fa-cart-shopping"></i> Marcar Compra Finalizada</button>`;
+                actionButtonsHtml += `<button class="btn btn-danger" onclick="transitionOrderStatus('cancel')"><i class="fa-solid fa-ban"></i> Cancelar Pedido</button>`;
+            } else if (o.status === 'PURCHASED') {
+                actionButtonsHtml += `<a href="checklist.html?id=${o.id}" target="_blank" class="btn btn-secondary" style="text-decoration:none;"><i class="fa-solid fa-list-check"></i> Ver Lista Móvil</a>`;
+                actionButtonsHtml += `<button class="btn btn-primary" onclick="transitionOrderStatus('mark_delivered')"><i class="fa-solid fa-truck"></i> Marcar Como Entregado en Finca</button>`;
+                actionButtonsHtml += `<button class="btn btn-accent" onclick="transitionOrderStatus('mark_paid')"><i class="fa-solid fa-money-bill-check"></i> Marcar Como Pagado</button>`;
+            } else if (o.status === 'DELIVERED') {
+                actionButtonsHtml += `<button class="btn btn-accent" onclick="transitionOrderStatus('mark_paid')"><i class="fa-solid fa-money-bill-check"></i> Marcar Como Pagado</button>`;
+            }
+
+            container.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#f1f5f9; padding:1rem; border-radius:8px; margin-bottom:1rem;">
+                    <div>
+                        <h4 style="font-size:1.1rem; color:var(--primary);">${o.guest_name} (${o.guest_email})</h4>
+                        <div style="font-size:0.85rem; color:var(--text-muted);">Reserva: <strong>${o.request_number}</strong> | Llegada: <strong>${o.checkin_date}</strong> (${o.nights} noches)</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); text-align:right;">Estado actual:</div>
+                        <div>${stBadge}</div>
+                    </div>
+                </div>
+
+                <h4 style="font-size:0.95rem; margin-bottom:0.5rem;"><i class="fa-solid fa-boxes-stacked"></i> Productos del Pedido</h4>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Producto</th>
+                                <th>Cant.</th>
+                                <th>Precio Unit.</th>
+                                <th>Total</th>
+                                <th>Compra</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>${itemsRows}</tbody>
+                    </table>
+                </div>
+
+                ${addProductHtml}
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.25rem;">
+                    <div style="background:#fef3c7; border:1px solid #f59e0b; padding:10px; border-radius:8px;">
+                        <strong style="color:#78350F; font-size:0.85rem;"><i class="fa-solid fa-comment"></i> Solicitud del Huésped (Texto Libre):</strong>
+                        <p style="font-size:0.85rem; margin-top:4px; white-space:pre-line;">${o.guest_notes || '<em>Sin observaciones del huésped</em>'}</p>
+                    </div>
+
+                    <div style="background:#e0f2fe; border:1px solid #0284c7; padding:10px; border-radius:8px;">
+                        <strong style="color:#0369a1; font-size:0.85rem;"><i class="fa-solid fa-lock"></i> Observaciones Internas Admin:</strong>
+                        <textarea id="admin-notes-textarea" class="form-input" rows="2" style="margin-top:4px;">${o.admin_notes || ''}</textarea>
+                        <button class="btn btn-secondary btn-sm" style="margin-top:6px;" onclick="saveAdminNotes(${o.id})">Guardar Observaciones</button>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); margin-top:1.5rem; padding-top:1rem;">
+                    <div style="font-size:1.2rem; font-weight:700; color:var(--primary);">
+                        Importe Total: ${o.total_formatted}
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        ${actionButtonsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateOrderItemQty(itemId, newQty, unitCents) {
+            fetch('../api/shop/admin/orders.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'update_item', order_id: activeOrderDetail.id, item_id: itemId, quantity: parseInt(newQty), unit_price_cents: unitCents })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) openOrderDetail(activeOrderDetail.id);
+                else alert(data.error);
+            });
+        }
+
+        function updateOrderItemPrice(itemId, qty, newEuroPrice) {
+            const unitCents = Math.round(parseFloat(newEuroPrice || '0') * 100);
+            fetch('../api/shop/admin/orders.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'update_item', order_id: activeOrderDetail.id, item_id: itemId, quantity: parseInt(qty), unit_price_cents: unitCents })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) openOrderDetail(activeOrderDetail.id);
+                else alert(data.error);
+            });
+        }
+
+        function handleAddProductToOrder() {
+            const prodId = parseInt(document.getElementById('add-prod-select').value);
+            const qty = parseInt(document.getElementById('add-prod-qty').value);
+            if (prodId <= 0) {
+                alert('Selecciona un producto.');
+                return;
+            }
+            fetch('../api/shop/admin/orders.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'add_item', order_id: activeOrderDetail.id, product_id: prodId, quantity: qty })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) openOrderDetail(activeOrderDetail.id);
+                else alert(data.error);
+            });
+        }
+
+        function removeOrderItem(itemId) {
+            if (!confirm('¿Eliminar esta línea del pedido?')) return;
+            fetch('../api/shop/admin/orders.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'remove_item', order_id: activeOrderDetail.id, item_id: itemId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) openOrderDetail(activeOrderDetail.id);
+                else alert(data.error);
+            });
+        }
+
+        function saveAdminNotes(orderId) {
+            const notes = document.getElementById('admin-notes-textarea').value;
+            fetch('../api/shop/admin/orders.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'update_admin_notes', order_id: orderId, admin_notes: notes })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) alert('Observaciones guardadas.');
+                else alert(data.error);
+            });
+        }
+
+        function transitionOrderStatus(actionName) {
+            if (!confirm('¿Confirmar cambio de estado del pedido?')) return;
+            fetch('../api/shop/admin/orders.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: actionName, order_id: activeOrderDetail.id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    openOrderDetail(activeOrderDetail.id);
+                    loadOrdersList();
+                } else alert(data.error);
+            });
+        }
+
+        function closeOrderDetailModal() { document.getElementById('modal-order-detail').style.display = 'none'; }
 
         // --- TAB 1: TOKENS ---
         function loadBookingsSelect() {
@@ -1033,7 +1384,6 @@
             document.getElementById('form-product').reset();
             document.getElementById('modal-product-title').textContent = 'Añadir Producto';
             
-            // Populate categories dropdown
             const catSel = document.getElementById('prod-category');
             catSel.innerHTML = '';
             categoriesData.forEach(c => {

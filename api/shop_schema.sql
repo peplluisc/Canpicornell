@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS shop_order_items (
     unit_price_cents INTEGER NOT NULL DEFAULT 0,
     total_price_cents INTEGER NOT NULL DEFAULT 0,
     is_purchased INTEGER NOT NULL DEFAULT 0,
+    purchase_status TEXT NOT NULL DEFAULT 'PENDING',
     notes TEXT,
     FOREIGN KEY (order_id) REFERENCES shop_orders(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES shop_products(id) ON DELETE SET NULL
