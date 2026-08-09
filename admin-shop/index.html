@@ -1638,18 +1638,44 @@
             const summaryBox = document.getElementById('csv-summary-box');
             summaryBox.innerHTML = `
                 <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:0.75rem 1rem; border-radius:8px;">
-                    <strong style="color:#1e40af;"><i class="fa-solid fa-list-check"></i> Total Productos:</strong> ${data.total_rows}
+                    <strong style="color:#1e40af;"><i class="fa-solid fa-list-check"></i> Filas Leídas:</strong> ${data.total_rows}
                 </div>
                 <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:0.75rem 1rem; border-radius:8px;">
-                    <strong style="color:#166534;"><i class="fa-solid fa-folder-tree"></i> Categorías Principales:</strong> ${data.categories_count}
+                    <strong style="color:#166534;"><i class="fa-solid fa-circle-check"></i> Filas Válidas:</strong> ${data.valid_rows_count}
+                </div>
+                <div style="background:${data.invalid_rows_count > 0 ? '#fef2f2' : '#f8fafc'}; border:1px solid ${data.invalid_rows_count > 0 ? '#fca5a5' : '#e2e8f0'}; padding:0.75rem 1rem; border-radius:8px;">
+                    <strong style="color:${data.invalid_rows_count > 0 ? '#991b1b' : '#475569'};"><i class="fa-solid fa-triangle-exclamation"></i> Filas con Error:</strong> ${data.invalid_rows_count}
                 </div>
                 <div style="background:#fdf4ff; border:1px solid #f5d0fe; padding:0.75rem 1rem; border-radius:8px;">
-                    <strong style="color:#86198f;"><i class="fa-solid fa-tags"></i> Subcategorías:</strong> ${data.subcategories_count}
+                    <strong style="color:#86198f;"><i class="fa-solid fa-tags"></i> Categorías / Subcat.:</strong> ${data.categories_count} / ${data.subcategories_count}
                 </div>
                 <div style="background:#fff7ed; border:1px solid #ffedd5; padding:0.75rem 1rem; border-radius:8px;">
                     <strong style="color:#c2410c;"><i class="fa-solid fa-image"></i> Imágenes Coincidentes:</strong> ${data.matched_images} / ${data.total_rows}
                 </div>
             `;
+
+            // If invalid rows exist, render error breakdown
+            let errorBox = document.getElementById('csv-error-breakdown');
+            if (!errorBox) {
+                errorBox = document.createElement('div');
+                errorBox.id = 'csv-error-breakdown';
+                summaryBox.parentNode.insertBefore(errorBox, summaryBox.nextSibling);
+            }
+
+            if (data.errors && data.errors.length > 0) {
+                let errHtml = `
+                    <div style="background:#fff5f5; border:1px solid #feb2b2; padding:1rem; border-radius:8px; margin-bottom:1rem;">
+                        <h5 style="color:#c53030; margin:0 0 0.5rem 0; font-family:'Outfit';"><i class="fa-solid fa-circle-xmark"></i> Incidencias Detectadas (${data.errors.length}):</h5>
+                        <ul style="margin:0; padding-left:1.25rem; font-size:0.85rem; color:#9b2c2c;">
+                `;
+                data.errors.forEach(e => {
+                    errHtml += `<li>Fila ${e.line} [<code>${escapeHtml(e.product_code || '-')}</code>]: ${escapeHtml(e.reason || e.motivo)}</li>`;
+                });
+                errHtml += `</ul></div>`;
+                errorBox.innerHTML = errHtml;
+            } else {
+                errorBox.innerHTML = '';
+            }
 
             const tbody = document.getElementById('tbody-csv-preview');
             tbody.innerHTML = '';
@@ -1683,7 +1709,7 @@
                 return;
             }
 
-            if (!confirm('¿Confirmar la importación masiva del catálogo?')) return;
+            if (!confirm('¿Confirmar la importación masiva del catálogo de Can Picornell?')) return;
 
             const btn = document.getElementById('btn-execute-import');
             btn.disabled = true;
@@ -1700,7 +1726,15 @@
                 btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> EJECUTAR IMPORTACIÓN MASIVA';
 
                 if (data.success) {
-                    alert(`${data.message}\n\n• Categorías creadas: ${data.created_categories}\n• Subcategorías creadas: ${data.created_subcategories}\n• Imágenes vinculadas: ${data.linked_images}`);
+                    let summaryText = `${data.message}\n\n`;
+                    summaryText += `• Filas leídas: ${data.filas_leidas}\n`;
+                    summaryText += `• Productos nuevos: ${data.productos_nuevos}\n`;
+                    summaryText += `• Productos actualizados: ${data.productos_actualizados}\n`;
+                    summaryText += `• Filas con error: ${data.filas_error}\n`;
+                    summaryText += `• Imágenes encontradas: ${data.imagenes_encontradas}\n`;
+                    summaryText += `• Imágenes no encontradas: ${data.imagenes_no_encontradas}`;
+
+                    alert(summaryText);
                     document.getElementById('csv-preview-results').style.display = 'none';
                     document.getElementById('form-csv-preview').reset();
                     activeCsvFileContent = '';

@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS shop_products (
     supplier_product_id TEXT,
     gtin TEXT,
     reference_price_cents INTEGER NOT NULL DEFAULT 0,
+    currency TEXT DEFAULT 'EUR',
+    priority TEXT DEFAULT 'A',
     margin_percent REAL DEFAULT NULL,
     manual_final_price_cents INTEGER DEFAULT NULL,
     image_url TEXT,

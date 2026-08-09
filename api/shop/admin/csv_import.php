@@ -1,8 +1,13 @@
 <?php
 /**
  * CSV Product Importer API for Can Picornell Guest Shop
- * Handles parsing, validation, category/subcategory normalization,
- * image linking outside git, multi-language translation upserting, and batch image uploads.
+ * Implements Product Importer 3.0.2 specification:
+ * - Product Code format: ^B\d{15}$
+ * - Image auto-resolution: /images/products/{product_code}.jpg
+ * - Integer cents handling (price_cents)
+ * - Multi-language translation upsert (ES, EN, DE) with fallback
+ * - Category & Subcategory normalization
+ * - Granular row-level error reporting
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -25,11 +30,11 @@ if (!isset($_SESSION['admin_authenticated']) || $_SESSION['admin_authenticated']
 
 $db = get_db_connection();
 
-// Ensure upload directory exists
-$uploadDir = __DIR__ . '/../../../uploads/products';
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
-}
+// Ensure upload & images directories exist
+$imgDir1 = __DIR__ . '/../../../images/products';
+$imgDir2 = __DIR__ . '/../../../uploads/products';
+if (!is_dir($imgDir1)) mkdir($imgDir1, 0755, true);
+if (!is_dir($imgDir2)) mkdir($imgDir2, 0755, true);
 
 $action = $_REQUEST['action'] ?? '';
 
@@ -40,18 +45,26 @@ function slugify(string $text): string {
     return $text ?: 'cat-' . substr(md5(uniqid()), 0, 6);
 }
 
-function find_matching_image(string $productCode, string $uploadDir): ?string {
+function find_matching_product_image(string $productCode): ?string {
+    $imgDir1 = __DIR__ . '/../../../images/products';
+    $imgDir2 = __DIR__ . '/../../../uploads/products';
+
     $extensions = ['jpg', 'jpeg', 'png', 'webp'];
     foreach ($extensions as $ext) {
-        $filename = $productCode . '.' . $ext;
-        if (file_exists($uploadDir . '/' . $filename)) {
-            return 'uploads/products/' . $filename;
+        if (file_exists($imgDir1 . '/' . $productCode . '.' . $ext)) {
+            return '/images/products/' . $productCode . '.' . $ext;
+        }
+        if (file_exists($imgDir2 . '/' . $productCode . '.' . $ext)) {
+            return 'uploads/products/' . $productCode . '.' . $ext;
         }
     }
     return null;
 }
 
 function parse_csv_data(string $content): array {
+    // Strip UTF-8 BOM if present
+    $content = preg_replace('/^[\x{FEFF}\x{FFFE}]/u', '', $content);
+
     // Detect delimiter (; or ,)
     $firstLine = strtok($content, "\r\n");
     $delimiter = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
@@ -65,8 +78,6 @@ function parse_csv_data(string $content): array {
         throw new Exception("El archivo CSV no contiene un encabezado válido.");
     }
 
-    // Clean BOM & trim header column names
-    $header[0] = preg_replace('/[\x{FEFF}\x{FFFE}]/u', '', $header[0]);
     $header = array_map(function($h) { return trim(strtolower($h)); }, $header);
 
     $rows = [];
@@ -74,7 +85,7 @@ function parse_csv_data(string $content): array {
     while (($data = fgetcsv($stream, 0, $delimiter)) !== false) {
         $lineNumber++;
         if (count($data) < 2) continue; // Skip empty lines
-        $row = [];
+        $row = ['_line_number' => $lineNumber];
         foreach ($header as $idx => $colName) {
             $row[$colName] = isset($data[$idx]) ? trim($data[$idx]) : '';
         }
@@ -112,15 +123,15 @@ if ($action === 'upload_images') {
             continue;
         }
 
-        $destFile = $uploadDir . '/' . $name;
+        $destFile = $imgDir1 . '/' . $name;
         if (move_uploaded_file($tmpName, $destFile)) {
             $uploaded++;
             $productCode = pathinfo($name, PATHINFO_FILENAME);
-            $relPath = 'uploads/products/' . $name;
+            $relPath = '/images/products/' . $name;
 
             // Auto link to existing product with matching SKU/Code
-            $upd = $db->prepare("UPDATE shop_products SET image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE sku = ?");
-            $upd->execute([$relPath, $productCode]);
+            $upd = $db->prepare("UPDATE shop_products SET image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE sku = ? OR supplier_product_id = ?");
+            $upd->execute([$relPath, $productCode, $productCode]);
             if ($upd->rowCount() > 0) {
                 $linked += $upd->rowCount();
             }
@@ -162,6 +173,7 @@ if ($action === 'preview') {
         $subcategoriesMap = [];
         $existingSkus = [];
         $matchedImages = 0;
+        $invalidRows = [];
 
         $skuStmt = $db->query("SELECT sku FROM shop_products WHERE sku IS NOT NULL");
         while ($skuRow = $skuStmt->fetch(PDO::FETCH_ASSOC)) {
@@ -169,28 +181,40 @@ if ($action === 'preview') {
         }
 
         $previewRows = [];
-        foreach ($rows as $idx => $r) {
+        foreach ($rows as $r) {
+            $lineNum = $r['_line_number'];
             $code = $r['product_code'] ?? '';
             $cat = $r['category'] ?? '';
             $subcat = $r['subcategory'] ?? '';
 
+            // Validate product_code: ^B\d{15}$
+            if (empty($code) || !preg_match('/^B\d{15}$/', $code)) {
+                $invalidRows[] = [
+                    'line' => $lineNum,
+                    'product_code' => $code ?: '-',
+                    'reason' => "product_code '" . ($code ?: 'VACÍO') . "' no cumple el formato ^B\\d{15}$ (Ej. B001018839900216)."
+                ];
+                continue;
+            }
+
             if (!empty($cat)) $categoriesMap[$cat] = true;
             if (!empty($subcat)) $subcategoriesMap[$cat . ' > ' . $subcat] = true;
 
-            $hasImage = find_matching_image($code, $uploadDir) !== null;
+            $hasImage = find_matching_product_image($code) !== null;
             if ($hasImage) $matchedImages++;
 
             $isNew = !isset($existingSkus[$code]);
 
-            if ($idx < 50) {
+            if (count($previewRows) < 50) {
                 $previewRows[] = [
-                    'line' => $idx + 2,
+                    'line' => $lineNum,
                     'product_code' => $code,
                     'category' => $cat,
                     'subcategory' => $subcat,
                     'brand' => $r['brand'] ?? '',
                     'format' => $r['format'] ?? '',
                     'price_cents' => intval($r['price_cents'] ?? 0),
+                    'priority' => $r['priority'] ?? 'A',
                     'name_es' => $r['name_es'] ?? '',
                     'name_en' => $r['name_en'] ?? '',
                     'name_de' => $r['name_de'] ?? '',
@@ -203,9 +227,12 @@ if ($action === 'preview') {
         send_response([
             'success' => true,
             'total_rows' => count($rows),
+            'valid_rows_count' => count($rows) - count($invalidRows),
+            'invalid_rows_count' => count($invalidRows),
             'categories_count' => count($categoriesMap),
             'subcategories_count' => count($subcategoriesMap),
             'matched_images' => $matchedImages,
+            'errors' => $invalidRows,
             'preview_samples' => $previewRows
         ]);
     } catch (Exception $e) {
@@ -214,7 +241,7 @@ if ($action === 'preview') {
 }
 
 // ------------------------------------------------------------------
-// 3. ACTION: EXECUTE IMPORT
+// 3. ACTION: EXECUTE IMPORT (IMPORTER 3.0.2 SPECIFICATION)
 // ------------------------------------------------------------------
 if ($action === 'execute') {
     try {
@@ -226,16 +253,58 @@ if ($action === 'execute') {
         $catCache = []; // slug -> id
         $subCatCache = []; // parent_id + sub_slug -> id
 
-        $importedProducts = 0;
+        $filasLeidas = count($rows);
+        $productosNuevos = 0;
+        $productosActualizados = 0;
+        $imagenesEncontradas = 0;
+        $imagenesNoEncontradas = 0;
         $createdCategories = 0;
         $createdSubcategories = 0;
-        $linkedImages = 0;
+
+        $detallesError = [];
 
         foreach ($rows as $r) {
+            $lineNum = $r['_line_number'];
             $code = trim($r['product_code'] ?? '');
-            if (empty($code)) continue;
+
+            // Rule 11. Validation 1: product_code format (^B\d{15}$)
+            if (empty($code)) {
+                $detallesError[] = ['fila' => $lineNum, 'product_code' => '-', 'motivo' => 'El campo product_code está vacío.'];
+                continue;
+            }
+            if (!preg_match('/^B\d{15}$/', $code)) {
+                $detallesError[] = ['fila' => $lineNum, 'product_code' => $code, 'motivo' => "El product_code '{$code}' no cumple el formato B + 15 dígitos (^B\\d{15}$)."];
+                continue;
+            }
+
+            // Rule 11. Validation 2: price_cents must be integer if provided
+            $priceRaw = trim($r['price_cents'] ?? '');
+            $priceCents = 0;
+            if ($priceRaw !== '') {
+                if (!is_numeric($priceRaw) || strpos($priceRaw, '.') !== false || strpos($priceRaw, ',') !== false) {
+                    $detallesError[] = ['fila' => $lineNum, 'product_code' => $code, 'motivo' => "price_cents '{$priceRaw}' no es un número entero válido."];
+                    continue;
+                }
+                $priceCents = intval($priceRaw);
+            }
+
+            // Rule 11. Validation 3: active must be 0 or 1
+            $activeRaw = trim($r['active'] ?? '1');
+            if (!in_array($activeRaw, ['0', '1', 0, 1], true)) {
+                $detallesError[] = ['fila' => $lineNum, 'product_code' => $code, 'motivo' => "El campo active '{$activeRaw}' no puede interpretarse como 0 o 1."];
+                continue;
+            }
+            $isActive = intval($activeRaw);
+
+            // Rule 11. Validation 4: name_es missing check
+            $nameEs = trim($r['name_es'] ?? '');
+            if (empty($nameEs)) {
+                $detallesError[] = ['fila' => $lineNum, 'product_code' => $code, 'motivo' => 'Falta name_es en la fila (nombre en español obligatorio).'];
+                continue;
+            }
 
             $catName = trim($r['category'] ?? 'General');
+            if (empty($catName)) $catName = 'General';
             $subCatName = trim($r['subcategory'] ?? '');
 
             // A. Process Main Category
@@ -285,20 +354,24 @@ if ($action === 'execute') {
                 $targetCatId = $subCatCache[$subKey];
             }
 
-            // C. Auto-detect image
-            $relImage = find_matching_image($code, $uploadDir);
+            // C. Rule 2: Auto-detect image at /images/products/{product_code}.jpg
+            $relImage = find_matching_product_image($code);
             if ($relImage) {
-                $linkedImages++;
+                $imagenesEncontradas++;
+            } else {
+                $imagenesNoEncontradas++;
             }
 
-            $priceCents = intval($r['price_cents'] ?? 0);
             $dispOrder = intval($r['display_order'] ?? 10);
-            $isActive = intval($r['active'] ?? 1);
             $brand = trim($r['brand'] ?? '');
+            $currency = trim($r['currency'] ?? 'EUR');
+            if (empty($currency)) $currency = 'EUR';
+            $priority = trim($r['priority'] ?? 'A');
+            if (empty($priority)) $priority = 'A';
 
             // D. Upsert Product in shop_products
-            $pStmt = $db->prepare("SELECT id, image_url FROM shop_products WHERE sku = ?");
-            $pStmt->execute([$code]);
+            $pStmt = $db->prepare("SELECT id, image_url FROM shop_products WHERE sku = ? OR supplier_product_id = ?");
+            $pStmt->execute([$code, $code]);
             $prod = $pStmt->fetch(PDO::FETCH_ASSOC);
 
             if ($prod) {
@@ -307,29 +380,31 @@ if ($action === 'execute') {
 
                 $uP = $db->prepare("
                     UPDATE shop_products SET 
-                        category_id = ?, brand = ?, reference_price_cents = ?, 
-                        manual_final_price_cents = ?, image_url = ?, display_order = ?, 
+                        category_id = ?, supplier_product_id = ?, brand = ?, reference_price_cents = ?, 
+                        currency = ?, priority = ?, image_url = ?, display_order = ?, 
                         is_active = ?, updated_at = ?
                     WHERE id = ?
                 ");
-                $uP->execute([$targetCatId, $brand, $priceCents, $priceCents, $finalImage, $dispOrder, $isActive, $now, $prodId]);
+                $uP->execute([$targetCatId, $code, $brand, $priceCents, $currency, $priority, $finalImage, $dispOrder, $isActive, $now, $prodId]);
+                $productosActualizados++;
             } else {
                 $inP = $db->prepare("
                     INSERT INTO shop_products (
-                        category_id, sku, brand, reference_price_cents, manual_final_price_cents, 
-                        image_url, display_order, is_active, is_available, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                        category_id, sku, supplier_product_id, brand, reference_price_cents, 
+                        currency, priority, image_url, display_order, is_active, is_available, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                 ");
-                $inP->execute([$targetCatId, $code, $brand, $priceCents, $priceCents, $relImage, $dispOrder, $isActive, $now, $now]);
+                $inP->execute([$targetCatId, $code, $code, $brand, $priceCents, $currency, $priority, $relImage, $dispOrder, $isActive, $now, $now]);
                 $prodId = $db->lastInsertId();
+                $productosNuevos++;
             }
 
-            // E. Upsert Translations for ES, EN, DE
+            // E. Rule 4: Upsert Translations for ES, EN, DE
             $fmt = trim($r['format'] ?? '');
             $langsMap = [
-                'es' => ['name' => $r['name_es'] ?? '', 'desc' => $r['description_es'] ?? ''],
-                'en' => ['name' => $r['name_en'] ?? '', 'desc' => $r['description_en'] ?? ''],
-                'de' => ['name' => $r['name_de'] ?? '', 'desc' => $r['description_de'] ?? '']
+                'es' => ['name' => $nameEs, 'desc' => trim($r['description_es'] ?? '')],
+                'en' => ['name' => trim($r['name_en'] ?? ''), 'desc' => trim($r['description_en'] ?? '')],
+                'de' => ['name' => trim($r['name_de'] ?? ''), 'desc' => trim($r['description_de'] ?? '')]
             ];
 
             foreach ($langsMap as $langCode => $tData) {
@@ -353,19 +428,22 @@ if ($action === 'execute') {
                     $tIns->execute([$prodId, $langCode, $tName, $tDesc, $fmt]);
                 }
             }
-
-            $importedProducts++;
         }
 
         $db->commit();
 
         send_response([
             'success' => true,
-            'message' => "Importación completada con éxito. {$importedProducts} productos procesados.",
-            'imported_products' => $importedProducts,
+            'message' => "Importación de catálogo finalizada con éxito.",
+            'filas_leidas' => $filasLeidas,
+            'productos_nuevos' => $productosNuevos,
+            'productos_actualizados' => $productosActualizados,
+            'filas_error' => count($detallesError),
+            'detalles_error' => $detallesError,
+            'imagenes_encontradas' => $imagenesEncontradas,
+            'imagenes_no_encontradas' => $imagenesNoEncontradas,
             'created_categories' => $createdCategories,
-            'created_subcategories' => $createdSubcategories,
-            'linked_images' => $linkedImages
+            'created_subcategories' => $createdSubcategories
         ]);
 
     } catch (Exception $e) {

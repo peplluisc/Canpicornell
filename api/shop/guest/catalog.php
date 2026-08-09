@@ -53,12 +53,13 @@ try {
         SELECT 
             p.id, p.category_id, p.sku, p.brand,
             p.reference_price_cents, p.margin_percent, p.manual_final_price_cents,
-            p.image_url, p.display_order, p.is_featured,
-            c.slug AS category_slug,
+            p.image_url, p.display_order, p.is_featured, p.priority,
+            c.slug AS category_slug, c.parent_id,
             t_req.name AS req_name, t_req.description AS req_desc, t_req.format_text AS req_fmt,
             t_es.name AS es_name, t_es.description AS es_desc, t_es.format_text AS es_fmt
         FROM shop_products p
         JOIN shop_categories c ON p.category_id = c.id
+        LEFT JOIN shop_categories pcat ON c.parent_id = pcat.id
         LEFT JOIN shop_product_translations t_req ON p.id = t_req.product_id AND t_req.language = :req_lang
         LEFT JOIN shop_product_translations t_es  ON p.id = t_es.product_id  AND t_es.language = 'es'
         WHERE p.is_active = 1 AND p.is_available = 1 AND c.is_active = 1
@@ -72,13 +73,15 @@ try {
         $params[':cat_slug2'] = $category_filter;
     }
 
-    $sql .= " ORDER BY p.is_featured DESC, p.display_order ASC, p.id DESC";
+    $sql .= " ORDER BY COALESCE(pcat.display_order, c.display_order) ASC, c.display_order ASC, p.display_order ASC, COALESCE(t_req.name, t_es.name) ASC";
 
     $p_stmt = $db->prepare($sql);
     $p_stmt->execute($params);
     $raw_products = $p_stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $products = [];
+    $webRoot = __DIR__ . '/../../..';
+
     foreach ($raw_products as $p) {
         $name = !empty($p['req_name']) ? $p['req_name'] : (!empty($p['es_name']) ? $p['es_name'] : 'Producto');
         $desc = !empty($p['req_desc']) ? $p['req_desc'] : ($p['es_desc'] ?? '');
@@ -98,6 +101,17 @@ try {
 
         $final_cents = calculate_final_price_cents($ref_cents, $m_pct, $man_cents, $global_margin);
 
+        // Image resolution fallback
+        $imgUrl = trim($p['image_url'] ?? '');
+        if (empty($imgUrl)) {
+            $imgUrl = '/assets/images/placeholder-product.jpg';
+        } else {
+            $diskPath = $webRoot . '/' . ltrim($imgUrl, '/');
+            if (!file_exists($diskPath)) {
+                $imgUrl = '/assets/images/placeholder-product.jpg';
+            }
+        }
+
         $products[] = [
             'id' => $p['id'],
             'category_id' => $p['category_id'],
@@ -108,7 +122,7 @@ try {
             'description' => $desc,
             'price_cents' => $final_cents,
             'price_formatted' => number_format($final_cents / 100, 2, ',', '.') . ' €',
-            'image_url' => $p['image_url'] ?? '',
+            'image_url' => $imgUrl,
             'is_featured' => intval($p['is_featured']) === 1
         ];
     }

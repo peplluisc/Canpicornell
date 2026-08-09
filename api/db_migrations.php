@@ -55,6 +55,44 @@ function run_db_migrations(PDO $pdo, string $driver) {
     if ($current_version < 4) {
         migrate_schema_v4($pdo, $driver);
         set_shop_schema_version($pdo, 4);
+        $current_version = 4;
+    }
+
+    // 8. Version 5 Migration: Add priority and currency columns to shop_products
+    if ($current_version < 5) {
+        migrate_schema_v5($pdo, $driver);
+        set_shop_schema_version($pdo, 5);
+    }
+}
+
+function migrate_schema_v5(PDO $pdo, string $driver): void {
+    try {
+        if ($driver === 'sqlite') {
+            $cols = $pdo->query("PRAGMA table_info(shop_products)")->fetchAll(PDO::FETCH_ASSOC);
+            $has_prio = false;
+            $has_curr = false;
+            foreach ($cols as $c) {
+                if ($c['name'] === 'priority') $has_prio = true;
+                if ($c['name'] === 'currency') $has_curr = true;
+            }
+            if (!$has_prio) {
+                $pdo->exec("ALTER TABLE shop_products ADD COLUMN priority TEXT DEFAULT 'A';");
+            }
+            if (!$has_curr) {
+                $pdo->exec("ALTER TABLE shop_products ADD COLUMN currency TEXT DEFAULT 'EUR';");
+            }
+        } else if ($driver === 'mysql') {
+            $cols1 = $pdo->query("SHOW COLUMNS FROM shop_products LIKE 'priority'")->fetchAll();
+            if (empty($cols1)) {
+                $pdo->exec("ALTER TABLE shop_products ADD COLUMN priority VARCHAR(10) DEFAULT 'A';");
+            }
+            $cols2 = $pdo->query("SHOW COLUMNS FROM shop_products LIKE 'currency'")->fetchAll();
+            if (empty($cols2)) {
+                $pdo->exec("ALTER TABLE shop_products ADD COLUMN currency VARCHAR(10) DEFAULT 'EUR';");
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Schema v5 migration error: " . $e->getMessage());
     }
 }
 
