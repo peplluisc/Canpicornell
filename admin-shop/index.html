@@ -552,11 +552,14 @@
 
                     <div id="generated-link-box" style="display: none; margin-top: 1.5rem; background: var(--accent-light); padding: 1.25rem; border-radius: 8px; border: 1px solid #f59e0b;">
                         <h4 style="color: #92400e; margin-bottom: 0.5rem;"><i class="fa-solid fa-circle-check"></i> Enlace Criptográfico Generado</h4>
-                        <p style="font-size: 0.85rem; color: #78350F; margin-bottom: 1rem;">Copia este enlace para enviarlo por WhatsApp o Email al huésped. El token completo no se volverá a mostrar por seguridad.</p>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="generated-link-input" class="form-input" readonly style="background: white; font-family: monospace; font-size: 0.85rem;">
-                            <button class="btn btn-accent" onclick="copyGeneratedLink()">
-                                <i class="fa-solid fa-copy"></i> Copiar
+                        <p style="font-size: 0.85rem; color: #78350F; margin-bottom: 1rem;">Copia el enlace directo o el mensaje de invitación listo para enviar por WhatsApp/Email al huésped.</p>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <input type="text" id="generated-link-input" class="form-input" readonly style="background: white; font-family: monospace; font-size: 0.85rem; flex: 1; min-width: 250px;">
+                            <button type="button" class="btn btn-secondary" onclick="copyGeneratedLink()">
+                                <i class="fa-solid fa-copy"></i> Copiar Enlace
+                            </button>
+                            <button type="button" class="btn btn-accent" onclick="copyGeneratedMessage()">
+                                <i class="fa-solid fa-comment-dots"></i> Copiar Mensaje Huésped
                             </button>
                         </div>
                     </div>
@@ -1818,6 +1821,13 @@
                 });
         }
 
+        let lastGeneratedTokenData = null;
+
+        function escapeJsString(str) {
+            if (!str) return '';
+            return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
         function loadTokensList() {
             fetch('../api/shop/admin/tokens.php')
                 .then(res => res.json())
@@ -1832,23 +1842,35 @@
                         const statusBadge = t.is_active == 1 
                             ? '<span class="badge badge-success">Activo</span>' 
                             : '<span class="badge badge-danger">Inactivo</span>';
+
+                        const copyLinkBtn = t.link 
+                            ? `<button class="btn btn-secondary btn-sm" onclick="copyTokenLinkDirect('${escapeJsString(t.link)}')" title="Copiar Enlace Directo"><i class="fa-solid fa-copy"></i> Enlace</button>` 
+                            : '';
+                        
+                        const copyMsgBtn = t.link 
+                            ? `<button class="btn btn-accent btn-sm" onclick="copyTokenMessage('${escapeJsString(t.link)}', '${escapeJsString(t.guest_name)}', '${t.preferred_language || 'es'}')" title="Copiar Mensaje Huésped"><i class="fa-solid fa-comment-dots"></i> Mensaje</button>` 
+                            : '';
                         
                         tbody.innerHTML += `
                             <tr>
                                 <td><strong>${t.request_number}</strong></td>
-                                <td>${t.guest_name}</td>
+                                <td>${escapeHtml(t.guest_name)}</td>
                                 <td><span class="badge badge-info">${(t.preferred_language || 'es').toUpperCase()}</span></td>
                                 <td>${t.created_at}</td>
                                 <td>${t.expires_at}</td>
                                 <td>${t.last_accessed_at || 'Nunca'}</td>
                                 <td>${statusBadge}</td>
                                 <td>
-                                    <button class="btn btn-secondary btn-sm" onclick="toggleTokenStatus(${t.token_id})">
-                                        <i class="fa-solid fa-power-off"></i>
-                                    </button>
-                                    <button class="btn btn-accent btn-sm" onclick="regenerateToken(${t.booking_id}, '${t.preferred_language}')">
-                                        <i class="fa-solid fa-rotate-right"></i> Regenerar
-                                    </button>
+                                    <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                                        ${copyLinkBtn}
+                                        ${copyMsgBtn}
+                                        <button class="btn btn-secondary btn-sm" onclick="toggleTokenStatus(${t.token_id})" title="Activar/Desactivar">
+                                            <i class="fa-solid fa-power-off"></i>
+                                        </button>
+                                        <button class="btn btn-accent btn-sm" onclick="regenerateToken(${t.booking_id}, '${t.preferred_language}')" title="Regenerar Token">
+                                            <i class="fa-solid fa-rotate-right"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `;
@@ -1870,6 +1892,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
+                    lastGeneratedTokenData = { link: data.link, guestName: data.guest_name || 'Huésped', lang: lang };
                     document.getElementById('generated-link-box').style.display = 'block';
                     document.getElementById('generated-link-input').value = data.link;
                     loadTokensList();
@@ -1887,6 +1910,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
+                    lastGeneratedTokenData = { link: data.link, guestName: data.guest_name || 'Huésped', lang: lang };
                     document.getElementById('generated-link-box').style.display = 'block';
                     document.getElementById('generated-link-input').value = data.link;
                     loadTokensList();
@@ -1907,11 +1931,54 @@
             });
         }
 
+        function copyTokenLinkDirect(link) {
+            if (!link) {
+                alert('El enlace no está disponible.');
+                return;
+            }
+            navigator.clipboard.writeText(link).then(() => {
+                alert('¡Enlace directo copiado al portapapeles!');
+            }).catch(err => {
+                alert('Error al copiar el enlace: ' + err);
+            });
+        }
+
+        function copyTokenMessage(link, guestName, lang) {
+            if (!link) {
+                alert('El enlace no está disponible.');
+                return;
+            }
+
+            lang = (lang || 'es').toLowerCase();
+            let message = '';
+
+            if (lang === 'en') {
+                message = `Hello ${guestName || ''},\n\nFor your convenience during your stay at Can Picornell, you can order your groceries in advance through our private portal:\n${link}\n\nThis way, when you arrive at the property, your purchase will be ready and placed for you. Enjoy your stay!`;
+            } else if (lang === 'de') {
+                message = `Hallo ${guestName || ''},\n\nFür Ihren Komfort während Ihres Aufenthalts in Can Picornell können Sie Ihre Einkäufe vorab über unser privates Portal tätigen:\n${link}\n\nSo finden Sie bei Ihrer Ankunft auf dem Anwesen Ihre Einkäufe bereits erledigt vor. Genießen Sie Ihren Aufenthalt!`;
+            } else {
+                message = `Hola ${guestName || ''},\n\nPara tu comodidad durante tu estancia en Can Picornell, puedes realizar tu compra con antelación a través de nuestro portal privado:\n${link}\n\nAsí, cuando llegues a la finca, encontrarás tu compra realizada y colocada. ¡Que disfrutes de tu estancia!`;
+            }
+
+            navigator.clipboard.writeText(message).then(() => {
+                alert('¡Mensaje de invitación copiado al portapapeles!');
+            }).catch(err => {
+                alert('Error al copiar el mensaje: ' + err);
+            });
+        }
+
         function copyGeneratedLink() {
             const input = document.getElementById('generated-link-input');
-            input.select();
-            navigator.clipboard.writeText(input.value);
-            alert('¡Enlace copiado al portapapeles!');
+            copyTokenLinkDirect(input.value);
+        }
+
+        function copyGeneratedMessage() {
+            if (lastGeneratedTokenData) {
+                copyTokenMessage(lastGeneratedTokenData.link, lastGeneratedTokenData.guestName, lastGeneratedTokenData.lang);
+            } else {
+                const input = document.getElementById('generated-link-input');
+                copyTokenMessage(input.value, 'Huésped', 'es');
+            }
         }
 
         // --- TAB 2: PRODUCTOS ---

@@ -39,6 +39,7 @@ if ($method === 'GET') {
             SELECT 
                 t.id AS token_id,
                 t.booking_id,
+                t.raw_token,
                 t.preferred_language,
                 t.is_active,
                 t.created_at,
@@ -54,6 +55,18 @@ if ($method === 'GET') {
             ORDER BY t.id DESC
         ");
         $tokens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $base_url = get_env_var('SITE_URL', 'https://canpicornell.com');
+        $base_url = rtrim($base_url, '/');
+
+        foreach ($tokens as &$tk) {
+            if (!empty($tk['raw_token'])) {
+                $tk['link'] = "{$base_url}/guest-shop/?t={$tk['raw_token']}&lang={$tk['preferred_language']}";
+            } else {
+                $tk['link'] = null;
+            }
+        }
+
         send_response(['success' => true, 'tokens' => $tokens]);
     } catch (Exception $e) {
         send_response(['error' => 'Error al consultar tokens: ' . $e->getMessage()], 500);
@@ -107,10 +120,10 @@ if ($method === 'POST') {
             }
 
             $ins_stmt = $db->prepare("
-                INSERT INTO shop_access_tokens (booking_id, token_hash, preferred_language, is_active, created_at, expires_at)
-                VALUES (?, ?, ?, 1, ?, ?)
+                INSERT INTO shop_access_tokens (booking_id, token_hash, raw_token, preferred_language, is_active, created_at, expires_at)
+                VALUES (?, ?, ?, ?, 1, ?, ?)
             ");
-            $ins_stmt->execute([$booking_id, $token_hash, $lang, $now, $expires_at]);
+            $ins_stmt->execute([$booking_id, $token_hash, $raw_token, $lang, $now, $expires_at]);
             $new_token_id = $db->lastInsertId();
 
             $db->commit();

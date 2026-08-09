@@ -62,6 +62,35 @@ function run_db_migrations(PDO $pdo, string $driver) {
     if ($current_version < 5) {
         migrate_schema_v5($pdo, $driver);
         set_shop_schema_version($pdo, 5);
+        $current_version = 5;
+    }
+
+    // 9. Version 6 Migration: Add raw_token column to shop_access_tokens
+    if ($current_version < 6) {
+        migrate_schema_v6($pdo, $driver);
+        set_shop_schema_version($pdo, 6);
+    }
+}
+
+function migrate_schema_v6(PDO $pdo, string $driver): void {
+    try {
+        if ($driver === 'sqlite') {
+            $cols = $pdo->query("PRAGMA table_info(shop_access_tokens)")->fetchAll(PDO::FETCH_ASSOC);
+            $has_raw = false;
+            foreach ($cols as $c) {
+                if ($c['name'] === 'raw_token') $has_raw = true;
+            }
+            if (!$has_raw) {
+                $pdo->exec("ALTER TABLE shop_access_tokens ADD COLUMN raw_token TEXT DEFAULT NULL;");
+            }
+        } else if ($driver === 'mysql') {
+            $cols = $pdo->query("SHOW COLUMNS FROM shop_access_tokens LIKE 'raw_token'")->fetchAll();
+            if (empty($cols)) {
+                $pdo->exec("ALTER TABLE shop_access_tokens ADD COLUMN raw_token VARCHAR(255) DEFAULT NULL;");
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Schema v6 migration error: " . $e->getMessage());
     }
 }
 

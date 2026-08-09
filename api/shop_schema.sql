@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS shop_access_tokens (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     booking_id INTEGER NOT NULL,
     token_hash TEXT NOT NULL UNIQUE,
+    raw_token TEXT DEFAULT NULL,
     preferred_language TEXT NOT NULL DEFAULT 'es',
     is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL,
