@@ -618,4 +618,17 @@ document.addEventListener('DOMContentLoaded', function() {
             errorContainer.style.display = 'none';
         }
     }
+
+    function initTrustCardResponsive() {
+        const trustCard = document.getElementById('trust-card-details');
+        if (!trustCard) return;
+        if (window.innerWidth <= 768) {
+            trustCard.removeAttribute('open');
+        } else {
+            trustCard.setAttribute('open', '');
+        }
+    }
+
+    initTrustCardResponsive();
+    window.addEventListener('resize', initTrustCardResponsive);
 });

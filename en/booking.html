@@ -104,19 +104,24 @@
                     <div class="calendar-error-msg" id="calendar-error-msg"></div>
                 </div>
 
-                <!-- Direct Booking Trust Card -->
-                <div class="trust-card">
-                    <h4>Why Book Directly?</h4>
-                    <p>Can Picornell is the exact same property and managed by the same owner as listed on Airbnb. Booking directly saves you platform service fees and ensures personalized support before, during, and after your stay.</p>
-                    <ul class="trust-card-list">
-                        <li>Best direct price guaranteed</li>
-                        <li>Direct contact with the owner</li>
-                        <li>Secure checkout powered by Stripe</li>
-                        <li>Written booking agreement & confirmation</li>
-                        <li>Support via Email and WhatsApp</li>
-                        <li>Option to check our Airbnb track record</li>
-                    </ul>
-                </div>
+                <!-- Direct Booking Trust Card (Collapsible on mobile) -->
+                <details class="trust-card" id="trust-card-details" open>
+                    <summary class="trust-card-summary">
+                        <h4>Why book directly with us?</h4>
+                        <span class="trust-card-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+                    </summary>
+                    <div class="trust-card-body">
+                        <p>Can Picornell is the exact same villa managed by the same owner listed on Airbnb. By booking directly on our website, you avoid platform service fees and receive personal attention before, during, and after your stay.</p>
+                        <ul class="trust-card-list">
+                            <li>Guaranteed best direct price</li>
+                            <li>Direct contact with the owner</li>
+                            <li>Secure payment via bank checkout</li>
+                            <li>Written agreement and confirmation</li>
+                            <li>Email and WhatsApp assistance</li>
+                            <li>Verified Airbnb track record</li>
+                        </ul>
+                    </div>
+                </details>
             </div>
 
             <!-- Right Column: Booking Request Form -->

@@ -1501,17 +1501,48 @@ textarea.form-input {
     background-color: var(--color-card-bg);
     border-left: 4px solid var(--color-accent);
     border-radius: var(--radius-md);
-    padding: 2rem;
+    padding: 1.25rem 1.5rem;
     margin-top: 2rem;
     box-shadow: var(--shadow-sm);
     text-align: left;
+    transition: all 0.3s ease;
+}
+
+.trust-card summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    outline: none;
+}
+
+.trust-card summary::-webkit-details-marker {
+    display: none;
 }
 
 .trust-card h4 {
     font-family: var(--font-serif);
     font-size: 1.25rem;
     color: var(--color-primary);
-    margin-bottom: 1rem;
+    margin: 0;
+}
+
+.trust-card-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    transition: transform 0.3s ease;
+}
+
+.trust-card[open] .trust-card-arrow {
+    transform: rotate(180deg);
+}
+
+.trust-card-body {
+    margin-top: 1.25rem;
 }
 
 .trust-card p {
