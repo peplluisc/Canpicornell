@@ -48,6 +48,37 @@ function run_db_migrations(PDO $pdo, string $driver) {
     if ($current_version < 3) {
         migrate_schema_v3($pdo, $driver);
         set_shop_schema_version($pdo, 3);
+        $current_version = 3;
+    }
+
+    // 7. Version 4 Migration: Add parent_id to shop_categories for subcategories
+    if ($current_version < 4) {
+        migrate_schema_v4($pdo, $driver);
+        set_shop_schema_version($pdo, 4);
+    }
+}
+
+function migrate_schema_v4(PDO $pdo, string $driver): void {
+    try {
+        if ($driver === 'sqlite') {
+            $cols = $pdo->query("PRAGMA table_info(shop_categories)")->fetchAll(PDO::FETCH_ASSOC);
+            $has_parent = false;
+            foreach ($cols as $c) {
+                if ($c['name'] === 'parent_id') $has_parent = true;
+            }
+            if (!$has_parent) {
+                $pdo->exec("ALTER TABLE shop_categories ADD COLUMN parent_id INTEGER DEFAULT NULL;");
+                $pdo->exec("CREATE INDEX IF NOT EXISTS idx_shop_cat_parent ON shop_categories(parent_id);");
+            }
+        } else if ($driver === 'mysql') {
+            $cols = $pdo->query("SHOW COLUMNS FROM shop_categories LIKE 'parent_id'")->fetchAll();
+            if (empty($cols)) {
+                $pdo->exec("ALTER TABLE shop_categories ADD COLUMN parent_id INT DEFAULT NULL;");
+                $pdo->exec("CREATE INDEX idx_shop_cat_parent ON shop_categories(parent_id);");
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Schema v4 migration error: " . $e->getMessage());
     }
 }
 

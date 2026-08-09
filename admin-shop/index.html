@@ -468,6 +468,9 @@
                 <button id="tab-btn-import" class="tab-btn" onclick="switchTab('import')">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Importar Vía URL
                 </button>
+                <button id="tab-btn-csv" class="tab-btn" onclick="switchTab('csv')">
+                    <i class="fa-solid fa-file-csv"></i> Importar CSV
+                </button>
             </nav>
 
             <!-- TAB 0: PEDIDOS (FASE 4) -->
@@ -704,6 +707,78 @@
                     <!-- CONTENEDOR PREVISUALIZACIÓN -->
                     <div id="import-preview-box" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
                         <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: IMPORTAR CSV (MODULO CSV) -->
+            <div id="tab-csv" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fa-solid fa-file-csv"></i> Importador Masivo de Catálogo vía Archivo CSV</h3>
+                    </div>
+
+                    <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                        <!-- SECCIÓN A: SUBIR CSV Y PREVISUALIZAR -->
+                        <div style="flex: 1; min-width: 300px;">
+                            <form id="form-csv-preview" onsubmit="handlePreviewCsv(event)">
+                                <div class="form-group">
+                                    <label class="form-label">1. Seleccionar Archivo CSV *</label>
+                                    <input type="file" id="csv-file-input" accept=".csv,text/csv" class="form-input" required>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">Formatos aceptados: UTF-8 con delimitador punto y coma (;) o coma (,).</span>
+                                </div>
+                                <button type="submit" id="btn-csv-preview" class="btn btn-accent" style="margin-top: 0.5rem;">
+                                    <i class="fa-solid fa-magnifying-glass"></i> ANALIZAR CSV
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- SECCIÓN B: SUBIR IMÁGENES MASIVAS -->
+                        <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px dashed var(--border-color); padding: 1rem; border-radius: 8px;">
+                            <form id="form-images-upload" onsubmit="handleUploadProductImages(event)">
+                                <div class="form-group">
+                                    <label class="form-label">2. Subir Imágenes de Productos (Opcional)</label>
+                                    <input type="file" id="product-images-input" accept="image/jpeg,image/png,image/webp" multiple class="form-input">
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">Los nombres de imagen deben coincidir con product_code (ej. B001018630000810.jpg). Se guardan en <code>uploads/products/</code> fuera de git.</span>
+                                </div>
+                                <button type="submit" id="btn-upload-images" class="btn btn-secondary" style="margin-top: 0.5rem;">
+                                    <i class="fa-solid fa-upload"></i> Subir Lote de Imágenes
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- BOX DE DIAGNÓSTICO Y TABLA PREVISUALIZACIÓN -->
+                    <div id="csv-preview-results" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                        <div id="csv-summary-box" style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 1rem;"></div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 style="font-family:'Outfit'; color:var(--primary); margin:0;">Muestra de Previsualización (Primeros 50 productos)</h4>
+                            <button type="button" id="btn-execute-import" class="btn btn-primary" onclick="handleExecuteCsvImport()">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> EJECUTAR IMPORTACIÓN MASIVA
+                            </button>
+                        </div>
+
+                        <div style="overflow-x: auto; max-height: 400px;">
+                            <table class="data-table" id="table-csv-preview">
+                                <thead>
+                                    <tr>
+                                        <th>Fila</th>
+                                        <th>Código</th>
+                                        <th>Categoría</th>
+                                        <th>Subcategoría</th>
+                                        <th>Marca</th>
+                                        <th>Formato</th>
+                                        <th>Precio (€)</th>
+                                        <th>Nombre (ES)</th>
+                                        <th>Nombre (EN)</th>
+                                        <th>Nombre (DE)</th>
+                                        <th>Imagen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-csv-preview"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1509,6 +1584,178 @@
             })
             .catch(err => {
                 alert(err.message || 'Error al guardar el producto.');
+            });
+        }
+
+        // --- TAB 6: IMPORTAR CSV (MODULO CSV) ---
+        let activeCsvFileContent = '';
+
+        function handlePreviewCsv(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('csv-file-input');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Selecciona un archivo CSV.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-csv-preview');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ANALIZANDO...';
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                activeCsvFileContent = evt.target.result;
+                fetch('../api/shop/admin/csv_import.php?action=preview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ csv_text: activeCsvFileContent })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> ANALIZAR CSV';
+
+                    if (!data.success) {
+                        alert(data.error || 'Error al analizar el archivo CSV.');
+                        return;
+                    }
+
+                    renderCsvPreview(data);
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> ANALIZAR CSV';
+                    alert(err.message || 'Error de conexión.');
+                });
+            };
+            reader.readAsText(fileInput.files[0], 'UTF-8');
+        }
+
+        function renderCsvPreview(data) {
+            const resultsBox = document.getElementById('csv-preview-results');
+            resultsBox.style.display = 'block';
+
+            const summaryBox = document.getElementById('csv-summary-box');
+            summaryBox.innerHTML = `
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:0.75rem 1rem; border-radius:8px;">
+                    <strong style="color:#1e40af;"><i class="fa-solid fa-list-check"></i> Total Productos:</strong> ${data.total_rows}
+                </div>
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:0.75rem 1rem; border-radius:8px;">
+                    <strong style="color:#166534;"><i class="fa-solid fa-folder-tree"></i> Categorías Principales:</strong> ${data.categories_count}
+                </div>
+                <div style="background:#fdf4ff; border:1px solid #f5d0fe; padding:0.75rem 1rem; border-radius:8px;">
+                    <strong style="color:#86198f;"><i class="fa-solid fa-tags"></i> Subcategorías:</strong> ${data.subcategories_count}
+                </div>
+                <div style="background:#fff7ed; border:1px solid #ffedd5; padding:0.75rem 1rem; border-radius:8px;">
+                    <strong style="color:#c2410c;"><i class="fa-solid fa-image"></i> Imágenes Coincidentes:</strong> ${data.matched_images} / ${data.total_rows}
+                </div>
+            `;
+
+            const tbody = document.getElementById('tbody-csv-preview');
+            tbody.innerHTML = '';
+
+            (data.preview_samples || []).forEach(r => {
+                const tr = document.createElement('tr');
+                const priceFormatted = (r.price_cents / 100).toFixed(2) + ' €';
+                const newBadge = r.is_new ? '<span class="badge badge-accent">Nuevo</span>' : '<span class="badge badge-secondary">Existente</span>';
+                const imgBadge = r.has_image ? '<span class="badge badge-success">✓ Encontrada</span>' : '<span class="badge badge-warning">Sin imagen</span>';
+
+                tr.innerHTML = `
+                    <td>${r.line}</td>
+                    <td><code>${escapeHtml(r.product_code)}</code> ${newBadge}</td>
+                    <td>${escapeHtml(r.category)}</td>
+                    <td>${escapeHtml(r.subcategory || '-')}</td>
+                    <td>${escapeHtml(r.brand || '-')}</td>
+                    <td>${escapeHtml(r.format || '-')}</td>
+                    <td><strong>${priceFormatted}</strong></td>
+                    <td>${escapeHtml(r.name_es || '-')}</td>
+                    <td>${escapeHtml(r.name_en || '-')}</td>
+                    <td>${escapeHtml(r.name_de || '-')}</td>
+                    <td>${imgBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleExecuteCsvImport() {
+            if (!activeCsvFileContent) {
+                alert('No hay datos de CSV listos para importar.');
+                return;
+            }
+
+            if (!confirm('¿Confirmar la importación masiva del catálogo?')) return;
+
+            const btn = document.getElementById('btn-execute-import');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> IMPORTANDO...';
+
+            fetch('../api/shop/admin/csv_import.php?action=execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ csv_text: activeCsvFileContent })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> EJECUTAR IMPORTACIÓN MASIVA';
+
+                if (data.success) {
+                    alert(`${data.message}\n\n• Categorías creadas: ${data.created_categories}\n• Subcategorías creadas: ${data.created_subcategories}\n• Imágenes vinculadas: ${data.linked_images}`);
+                    document.getElementById('csv-preview-results').style.display = 'none';
+                    document.getElementById('form-csv-preview').reset();
+                    activeCsvFileContent = '';
+                    loadProductsList();
+                    loadCategoriesList();
+                    switchTab('products');
+                } else {
+                    alert(data.error || 'Error al ejecutar la importación.');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> EJECUTAR IMPORTACIÓN MASIVA';
+                alert(err.message || 'Error de conexión durante la importación.');
+            });
+        }
+
+        function handleUploadProductImages(e) {
+            e.preventDefault();
+            const input = document.getElementById('product-images-input');
+            if (!input.files || input.files.length === 0) {
+                alert('Selecciona al menos una imagen para subir.');
+                return;
+            }
+
+            const formData = new FormData();
+            for (let i = 0; i < input.files.length; i++) {
+                formData.append('images[]', input.files[i]);
+            }
+
+            const btn = document.getElementById('btn-upload-images');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SUBIENDO...';
+
+            fetch('../api/shop/admin/csv_import.php?action=upload_images', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-upload"></i> Subir Lote de Imágenes';
+
+                if (data.success) {
+                    alert(`Imágenes subidas: ${data.uploaded_count}\nImágenes vinculadas a productos: ${data.linked_count}`);
+                    document.getElementById('form-images-upload').reset();
+                    loadProductsList();
+                } else {
+                    alert(data.error || 'Error al subir las imágenes.');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-upload"></i> Subir Lote de Imágenes';
+                alert(err.message || 'Error de conexión.');
             });
         }
 

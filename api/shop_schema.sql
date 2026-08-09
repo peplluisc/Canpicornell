@@ -20,11 +20,15 @@ CREATE INDEX IF NOT EXISTS idx_shop_tokens_booking ON shop_access_tokens(booking
 -- 2. Categorías de Productos
 CREATE TABLE IF NOT EXISTS shop_categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent_id INTEGER DEFAULT NULL,
     slug TEXT NOT NULL UNIQUE,
     display_order INTEGER NOT NULL DEFAULT 0,
     is_active INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (parent_id) REFERENCES shop_categories(id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS idx_shop_cat_parent ON shop_categories(parent_id);
 
 -- 3. Traducciones de Categorías (ES, EN, DE)
 CREATE TABLE IF NOT EXISTS shop_category_translations (

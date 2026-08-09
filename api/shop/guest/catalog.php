@@ -67,8 +67,9 @@ try {
     $params = [':req_lang' => $lang];
 
     if (!empty($category_filter)) {
-        $sql .= " AND c.slug = :cat_slug";
+        $sql .= " AND (c.slug = :cat_slug OR c.parent_id = (SELECT id FROM shop_categories WHERE slug = :cat_slug2 AND parent_id IS NULL))";
         $params[':cat_slug'] = $category_filter;
+        $params[':cat_slug2'] = $category_filter;
     }
 
     $sql .= " ORDER BY p.is_featured DESC, p.display_order ASC, p.id DESC";

@@ -9,3 +9,8 @@ api/booking_config.json
 api/config.json
 scratch/
 *.json.bak
+
+# Uploaded Product Media (outside git tracking)
+uploads/
+uploads/products/
+
