@@ -95,6 +95,15 @@ function parse_csv_data(string $content): array {
     return $rows;
 }
 
+function get_row_val(array $row, array $aliases, string $default = ''): string {
+    foreach ($aliases as $a) {
+        if (isset($row[$a]) && trim($row[$a]) !== '') {
+            return trim($row[$a]);
+        }
+    }
+    return $default;
+}
+
 // ------------------------------------------------------------------
 // 1. ACTION: UPLOAD IMAGES
 // ------------------------------------------------------------------
@@ -183,9 +192,9 @@ if ($action === 'preview') {
         $previewRows = [];
         foreach ($rows as $r) {
             $lineNum = $r['_line_number'];
-            $code = $r['product_code'] ?? '';
-            $cat = $r['category'] ?? '';
-            $subcat = $r['subcategory'] ?? '';
+            $code = get_row_val($r, ['product_code', 'código', 'codigo', 'sku', 'code']);
+            $cat = get_row_val($r, ['category', 'categoría', 'categoria', 'cat']);
+            $subcat = get_row_val($r, ['subcategory', 'subcategoría', 'subcategoria', 'subcat']);
 
             // Validate product_code: ^B\d{15}$
             if (empty($code) || !preg_match('/^B\d{15}$/', $code)) {
@@ -211,13 +220,13 @@ if ($action === 'preview') {
                     'product_code' => $code,
                     'category' => $cat,
                     'subcategory' => $subcat,
-                    'brand' => $r['brand'] ?? '',
-                    'format' => $r['format'] ?? '',
-                    'price_cents' => intval($r['price_cents'] ?? 0),
-                    'priority' => $r['priority'] ?? 'A',
-                    'name_es' => $r['name_es'] ?? '',
-                    'name_en' => $r['name_en'] ?? '',
-                    'name_de' => $r['name_de'] ?? '',
+                    'brand' => get_row_val($r, ['brand', 'marca']),
+                    'format' => get_row_val($r, ['format', 'formato']),
+                    'price_cents' => intval(get_row_val($r, ['price_cents', 'precio_cents', 'price', 'precio', 'reference_price_cents'], '0')),
+                    'priority' => get_row_val($r, ['priority', 'prioridad'], 'A'),
+                    'name_es' => get_row_val($r, ['name_es', 'nombre_es']),
+                    'name_en' => get_row_val($r, ['name_en', 'nombre_en']),
+                    'name_de' => get_row_val($r, ['name_de', 'nombre_de']),
                     'is_new' => $isNew,
                     'has_image' => $hasImage
                 ];
@@ -265,7 +274,7 @@ if ($action === 'execute') {
 
         foreach ($rows as $r) {
             $lineNum = $r['_line_number'];
-            $code = trim($r['product_code'] ?? '');
+            $code = trim(get_row_val($r, ['product_code', 'código', 'codigo', 'sku', 'code']));
 
             // Rule 11. Validation 1: product_code format (^B\d{15}$)
             if (empty($code)) {
@@ -278,7 +287,7 @@ if ($action === 'execute') {
             }
 
             // Rule 11. Validation 2: price_cents must be integer if provided
-            $priceRaw = trim($r['price_cents'] ?? '');
+            $priceRaw = trim(get_row_val($r, ['price_cents', 'precio_cents', 'price', 'precio', 'reference_price_cents']));
             $priceCents = 0;
             if ($priceRaw !== '') {
                 if (!is_numeric($priceRaw) || strpos($priceRaw, '.') !== false || strpos($priceRaw, ',') !== false) {
@@ -289,7 +298,7 @@ if ($action === 'execute') {
             }
 
             // Rule 11. Validation 3: active must be 0 or 1
-            $activeRaw = trim($r['active'] ?? '1');
+            $activeRaw = trim(get_row_val($r, ['active', 'activo', 'is_active'], '1'));
             if (!in_array($activeRaw, ['0', '1', 0, 1], true)) {
                 $detallesError[] = ['fila' => $lineNum, 'product_code' => $code, 'motivo' => "El campo active '{$activeRaw}' no puede interpretarse como 0 o 1."];
                 continue;
@@ -297,15 +306,15 @@ if ($action === 'execute') {
             $isActive = intval($activeRaw);
 
             // Rule 11. Validation 4: name_es missing check
-            $nameEs = trim($r['name_es'] ?? '');
+            $nameEs = trim(get_row_val($r, ['name_es', 'nombre_es']));
             if (empty($nameEs)) {
                 $detallesError[] = ['fila' => $lineNum, 'product_code' => $code, 'motivo' => 'Falta name_es en la fila (nombre en español obligatorio).'];
                 continue;
             }
 
-            $catName = trim($r['category'] ?? 'General');
+            $catName = trim(get_row_val($r, ['category', 'categoría', 'categoria', 'cat'], 'General'));
             if (empty($catName)) $catName = 'General';
-            $subCatName = trim($r['subcategory'] ?? '');
+            $subCatName = trim(get_row_val($r, ['subcategory', 'subcategoría', 'subcategoria', 'subcat']));
 
             // A. Process Main Category
             $catSlug = slugify($catName);
@@ -375,11 +384,11 @@ if ($action === 'execute') {
                 $imagenesNoEncontradas++;
             }
 
-            $dispOrder = intval($r['display_order'] ?? 10);
-            $brand = trim($r['brand'] ?? '');
-            $currency = trim($r['currency'] ?? 'EUR');
+            $dispOrder = intval(get_row_val($r, ['display_order', 'orden', 'displayorder'], '10'));
+            $brand = trim(get_row_val($r, ['brand', 'marca']));
+            $currency = trim(get_row_val($r, ['currency', 'moneda'], 'EUR'));
             if (empty($currency)) $currency = 'EUR';
-            $priority = trim($r['priority'] ?? 'A');
+            $priority = trim(get_row_val($r, ['priority', 'prioridad'], 'A'));
             if (empty($priority)) $priority = 'A';
 
             // D. Upsert Product in shop_products
@@ -413,11 +422,11 @@ if ($action === 'execute') {
             }
 
             // E. Rule 4: Upsert Translations for ES, EN, DE
-            $fmt = trim($r['format'] ?? '');
+            $fmt = trim(get_row_val($r, ['format', 'formato']));
             $langsMap = [
-                'es' => ['name' => $nameEs, 'desc' => trim($r['description_es'] ?? '')],
-                'en' => ['name' => trim($r['name_en'] ?? ''), 'desc' => trim($r['description_en'] ?? '')],
-                'de' => ['name' => trim($r['name_de'] ?? ''), 'desc' => trim($r['description_de'] ?? '')]
+                'es' => ['name' => $nameEs, 'desc' => trim(get_row_val($r, ['description_es', 'descripcion_es']))],
+                'en' => ['name' => trim(get_row_val($r, ['name_en', 'nombre_en'])), 'desc' => trim(get_row_val($r, ['description_en', 'descripcion_en']))],
+                'de' => ['name' => trim(get_row_val($r, ['name_de', 'nombre_de'])), 'desc' => trim(get_row_val($r, ['description_de', 'descripcion_de']))]
             ];
 
             foreach ($langsMap as $langCode => $tData) {
