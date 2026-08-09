@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/env_helper.php';
+require_once __DIR__ . '/db_migrations.php';
 
 function get_db_connection() {
     static $pdo = null;
@@ -25,21 +26,12 @@ function get_db_connection() {
                 mkdir($parent_dir, 0755, true);
             }
 
-            $db_exists = file_exists($db_absolute_path);
-
             $pdo = new PDO("sqlite:" . $db_absolute_path);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-            // Initialize database tables if database is new
-            if (!$db_exists || filesize($db_absolute_path) === 0) {
-                $schema_file = __DIR__ . '/db_schema.sql';
-                if (file_exists($schema_file)) {
-                    $schema_sql = file_get_contents($schema_file);
-                    // SQLite supports executing multi-statement SQLs through PDO exec()
-                    $pdo->exec($schema_sql);
-                }
-            }
+            // Execute versioned migrations and foreign keys enforcement
+            run_db_migrations($pdo, 'sqlite');
 
         } else if ($driver === 'mysql') {
             $host = get_env_var('MYSQL_HOST', 'localhost');
@@ -52,6 +44,9 @@ function get_db_connection() {
             $pdo = new PDO($dsn, $user, $pass);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+            // Execute versioned migrations for MySQL
+            run_db_migrations($pdo, 'mysql');
         } else {
             throw new Exception("Unsupported database driver: " . $driver);
         }

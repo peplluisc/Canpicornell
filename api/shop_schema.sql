@@ -1,56 +1,7 @@
--- Can Picornell Complete Baseline Database Schema (Booking + Shop Module V1)
-
--- 1. Table for Booking Requests
-CREATE TABLE IF NOT EXISTS booking_requests (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    request_number TEXT NOT NULL UNIQUE,
-    checkin_date TEXT NOT NULL,
-    checkout_date TEXT NOT NULL,
-    adults INTEGER NOT NULL,
-    children INTEGER NOT NULL,
-    babies INTEGER NOT NULL,
-    guest_name TEXT NOT NULL,
-    guest_email TEXT NOT NULL,
-    guest_phone TEXT NOT NULL,
-    guest_country TEXT NOT NULL,
-    preferred_language TEXT NOT NULL,
-    contact_channel TEXT NOT NULL,
-    arrival_time TEXT,
-    special_requests TEXT,
-    discovery_channel TEXT,
-    amount_accommodation REAL NOT NULL,
-    amount_cleaning REAL NOT NULL,
-    amount_tax REAL NOT NULL,
-    amount_total REAL NOT NULL,
-    amount_deposit REAL NOT NULL,
-    amount_balance REAL NOT NULL,
-    balance_due_date TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'solicitud_recibida',
-    stripe_session_id TEXT,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-);
-
--- Indexing for fast search and validation queries
-CREATE INDEX IF NOT EXISTS idx_booking_dates ON booking_requests(checkin_date, checkout_date);
-CREATE INDEX IF NOT EXISTS idx_booking_status ON booking_requests(status);
-CREATE INDEX IF NOT EXISTS idx_booking_stripe_session ON booking_requests(stripe_session_id);
-
--- 2. Table for Booking History Logs
-CREATE TABLE IF NOT EXISTS booking_history (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    booking_id INTEGER NOT NULL,
-    status TEXT NOT NULL,
-    notes TEXT,
-    changed_at TEXT NOT NULL,
-    FOREIGN KEY(booking_id) REFERENCES booking_requests(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_history_booking_id ON booking_history(booking_id);
-
--- 3. Can Picornell Private Guest Shop Module - Database Schema V1
+-- Can Picornell Private Guest Shop Module - Database Schema V1
 -- Amounts stored in INTEGER cents (2.95€ = 295 cents)
 
+-- 1. Tokens de Acceso Privados para Huéspedes (con hash SHA-256)
 CREATE TABLE IF NOT EXISTS shop_access_tokens (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     booking_id INTEGER NOT NULL,
@@ -66,6 +17,7 @@ CREATE TABLE IF NOT EXISTS shop_access_tokens (
 CREATE INDEX IF NOT EXISTS idx_shop_tokens_hash ON shop_access_tokens(token_hash);
 CREATE INDEX IF NOT EXISTS idx_shop_tokens_booking ON shop_access_tokens(booking_id);
 
+-- 2. Categorías de Productos
 CREATE TABLE IF NOT EXISTS shop_categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slug TEXT NOT NULL UNIQUE,
@@ -74,6 +26,7 @@ CREATE TABLE IF NOT EXISTS shop_categories (
     created_at TEXT NOT NULL
 );
 
+-- 3. Traducciones de Categorías (ES, EN, DE)
 CREATE TABLE IF NOT EXISTS shop_category_translations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     category_id INTEGER NOT NULL,
@@ -85,6 +38,7 @@ CREATE TABLE IF NOT EXISTS shop_category_translations (
 
 CREATE INDEX IF NOT EXISTS idx_shop_cat_trans_lang ON shop_category_translations(category_id, language);
 
+-- 4. Catálogo de Productos
 CREATE TABLE IF NOT EXISTS shop_products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     category_id INTEGER NOT NULL,
@@ -108,6 +62,7 @@ CREATE TABLE IF NOT EXISTS shop_products (
 CREATE INDEX IF NOT EXISTS idx_shop_products_cat ON shop_products(category_id);
 CREATE INDEX IF NOT EXISTS idx_shop_products_active ON shop_products(is_active);
 
+-- 5. Traducciones de Productos y URLs de Origen por Idioma (ES, EN, DE)
 CREATE TABLE IF NOT EXISTS shop_product_translations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER NOT NULL,
@@ -123,6 +78,7 @@ CREATE TABLE IF NOT EXISTS shop_product_translations (
 
 CREATE INDEX IF NOT EXISTS idx_shop_prod_trans_lang ON shop_product_translations(product_id, language);
 
+-- 6. Cabecera de Pedidos de Huéspedes
 CREATE TABLE IF NOT EXISTS shop_orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     booking_id INTEGER NOT NULL,
@@ -149,6 +105,7 @@ CREATE TABLE IF NOT EXISTS shop_orders (
 CREATE INDEX IF NOT EXISTS idx_shop_orders_booking ON shop_orders(booking_id);
 CREATE INDEX IF NOT EXISTS idx_shop_orders_status ON shop_orders(status);
 
+-- 7. Líneas de Pedido (con preservación de precio histórico en céntimos)
 CREATE TABLE IF NOT EXISTS shop_order_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id INTEGER NOT NULL,
@@ -165,6 +122,7 @@ CREATE TABLE IF NOT EXISTS shop_order_items (
 
 CREATE INDEX IF NOT EXISTS idx_shop_order_items_order ON shop_order_items(order_id);
 
+-- 8. Configuración General de la Tienda y Versión de Esquema
 CREATE TABLE IF NOT EXISTS shop_settings (
     setting_key TEXT PRIMARY KEY,
     setting_value TEXT NOT NULL,

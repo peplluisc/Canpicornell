@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión Tienda Privada | Can Picornell</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.png" type="image/png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+        :root {
+            --primary: #1e293b;
+            --primary-dark: #0f172a;
+            --accent: #d97706;
+            --accent-hover: #b45309;
+            --accent-light: #fef3c7;
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: var(--primary-dark);
+            color: #ffffff;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-subtitle {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-nav-link {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #475569;
+            color: #e2e8f0;
+            padding: 6px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-nav-link:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #475569;
+            color: #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--danger);
+            color: #fca5a5;
+        }
+
+        .main-content {
+            max-width: 1400px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            flex: 1;
+        }
+
+        /* LOGIN SCREEN */
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .login-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--accent-light);
+            color: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .login-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        /* TABS */
+        .admin-nav-tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* CARDS & TABLES */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-accent { background: var(--accent); color: white; }
+        .btn-accent:hover { background: var(--accent-hover); }
+        .btn-secondary { background: #f1f5f9; color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        .data-table th {
+            background: #f8fafc;
+            padding: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-success { background: #dcfce7; color: #15803d; }
+        .badge-danger { background: #fee2e2; color: #b91c1c; }
+        .badge-info { background: #e0f2fe; color: #0369a1; }
+        .badge-warning { background: #fef3c7; color: #b45309; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        /* MODAL */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: var(--radius);
+            max-width: 650px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .lang-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 1rem;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .lang-tab-btn {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .lang-tab-btn.active {
+            background: white;
+            color: var(--accent);
+            box-shadow: var(--shadow-sm);
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header app-header">
+        <div class="brand-container">
+            <div class="brand-logo">
+                <i class="fa-solid fa-store"></i>
+            </div>
+            <div>
+                <h1 class="brand-title">Can Picornell</h1>
+                <p class="brand-subtitle">Gestión de Tienda Privada para Huéspedes</p>
+            </div>
+        </div>
+
+        <div id="userPanel" class="user-panel" style="display: none;">
+            <a href="../gestion-precios/index.html" class="btn-nav-link">
+                <i class="fa-solid fa-calendar-days"></i> Tarifas y Calendario
+            </a>
+            <span id="userEmail" style="font-size: 0.85rem; color: #cbd5e1;">admin@canpicornell.com</span>
+            <button class="btn-logout" onclick="logoutAdmin()">
+                <i class="fa-solid fa-right-from-bracket"></i> Salir
+            </button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- VIEW 1: LOGIN -->
+        <div id="loginView" class="login-wrapper">
+            <div class="login-card">
+                <div class="login-icon">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+                <h1 class="login-title">Acceso Privado</h1>
+                <p class="login-desc">Módulo de administración de la tienda privada de huéspedes. Inicia sesión con la cuenta de Gmail autorizada.</p>
+                <div id="g_id_onload"></div>
+                <div id="googleBtnPlaceholder"></div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: DASHBOARD TIENDA -->
+        <div id="dashboardView" style="display: none;">
+            <nav class="admin-nav-tabs">
+                <button class="tab-btn active" onclick="switchTab('tokens')">
+                    <i class="fa-solid fa-key"></i> Enlaces Privados
+                </button>
+                <button class="tab-btn" onclick="switchTab('products')">
+                    <i class="fa-solid fa-boxes-stacked"></i> Productos
+                </button>
+                <button class="tab-btn" onclick="switchTab('categories')">
+                    <i class="fa-solid fa-tags"></i> Categorías
+                </button>
+                <button class="tab-btn" onclick="switchTab('settings')">
+                    <i class="fa-solid fa-sliders"></i> Configuración
+                </button>
+                <button class="tab-btn disabled" title="Fase 4">
+                    <i class="fa-solid fa-cart-shopping"></i> Pedidos <span class="badge badge-info">Fase 4</span>
+                </button>
+                <button class="tab-btn disabled" title="Fase 5">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> Importar <span class="badge badge-info">Fase 5</span>
+                </button>
+            </nav>
+
+            <!-- TAB 1: ENLACES PRIVADOS / TOKENS -->
+            <div id="tab-tokens" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fa-solid fa-link"></i> Generar Nuevo Enlace Privado</h3>
+                    </div>
+                    <form id="form-generate-token" onsubmit="handleGenerateToken(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Seleccionar Reserva</label>
+                                <select id="token-booking-select" class="form-input" required>
+                                    <option value="">Cargando reservas...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Idioma Inicial del Enlace</label>
+                                <select id="token-lang-select" class="form-input" required>
+                                    <option value="es">Castellano (ES)</option>
+                                    <option value="en">English (EN)</option>
+                                    <option value="de">Deutsch (DE)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Fecha de Expiración (Opcional)</label>
+                                <input type="text" id="token-expiry-input" class="form-input" placeholder="Por defecto fecha de llegada">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-accent" style="margin-top: 1rem;">
+                            <i class="fa-solid fa-plus"></i> Generar Enlace de Compra
+                        </button>
+                    </form>
+
+                    <!-- CONTENEDOR RESULTADO ENLACE GENERADO -->
+                    <div id="generated-link-box" style="display: none; margin-top: 1.5rem; background: var(--accent-light); padding: 1.25rem; border-radius: 8px; border: 1px solid #f59e0b;">
+                        <h4 style="color: #92400e; margin-bottom: 0.5rem;"><i class="fa-solid fa-circle-check"></i> Enlace Criptográfico Generado</h4>
+                        <p style="font-size: 0.85rem; color: #78350F; margin-bottom: 1rem;">Copia este enlace para enviarlo por WhatsApp o Email al huésped. El token completo no se volverá a mostrar por seguridad.</p>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="generated-link-input" class="form-input" readonly style="background: white; font-family: monospace; font-size: 0.85rem;">
+                            <button class="btn btn-accent" onclick="copyGeneratedLink()">
+                                <i class="fa-solid fa-copy"></i> Copiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Enlaces Activos e Histórico</h3>
+                        <button class="btn btn-secondary btn-sm" onclick="loadTokensList()">
+                            <i class="fa-solid fa-rotate-right"></i> Actualizar
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Reserva</th>
+                                    <th>Huésped</th>
+                                    <th>Idioma</th>
+                                    <th>Creado</th>
+                                    <th>Expiración</th>
+                                    <th>Último Acceso</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tokens-table-body">
+                                <tr><td colspan="8" style="text-align:center;">Cargando enlaces...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: PRODUCTOS -->
+            <div id="tab-products" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fa-solid fa-boxes-stacked"></i> Catálogo de Productos</h3>
+                        <button class="btn btn-accent" onclick="openProductModal()">
+                            <i class="fa-solid fa-plus"></i> Añadir Producto
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>SKU / Marca</th>
+                                    <th>Nombre (ES)</th>
+                                    <th>Categoría</th>
+                                    <th>Precio Base</th>
+                                    <th>Margen %</th>
+                                    <th>Precio Final</th>
+                                    <th>Flags</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-table-body">
+                                <tr><td colspan="8" style="text-align:center;">Cargando catálogo...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: CATEGORÍAS -->
+            <div id="tab-categories" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fa-solid fa-tags"></i> Categorías de Productos</h3>
+                        <button class="btn btn-accent" onclick="openCategoryModal()">
+                            <i class="fa-solid fa-plus"></i> Nueva Categoría
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Slug</th>
+                                    <th>Nombre (ES)</th>
+                                    <th>Nombre (EN)</th>
+                                    <th>Nombre (DE)</th>
+                                    <th>Orden</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categories-table-body">
+                                <tr><td colspan="7" style="text-align:center;">Cargando categorías...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: CONFIGURACIÓN -->
+            <div id="tab-settings" class="tab-content" style="display: none;">
+                <div class="card" style="max-width: 600px;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fa-solid fa-sliders"></i> Ajustes Generales de la Tienda</h3>
+                    </div>
+                    <form id="form-settings" onsubmit="handleSaveSettings(event)">
+                        <div class="form-group">
+                            <label class="form-label">Margen Global Predeterminado (%)</label>
+                            <input type="number" step="0.01" id="setting-global-margin" class="form-input" required placeholder="10.00">
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Porcentaje aplicado por defecto a los productos que no especifiquen margen propio ni precio manual.</span>
+                        </div>
+                        <button type="submit" class="btn btn-accent" style="margin-top: 1rem;">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar Ajustes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL PRODUCTO -->
+    <div id="modal-product" class="modal-backdrop" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modal-product-title" style="font-family: 'Outfit';">Editar Producto</h3>
+                <button class="btn btn-secondary btn-sm" onclick="closeProductModal()">&times;</button>
+            </div>
+            <form id="form-product" onsubmit="handleSaveProduct(event)">
+                <input type="hidden" id="prod-id" value="0">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Categoría *</label>
+                        <select id="prod-category" class="form-input" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">SKU (Opcional)</label>
+                        <input type="text" id="prod-sku" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Marca (Opcional)</label>
+                        <input type="text" id="prod-brand" class="form-input" placeholder="Ej: Bezoya, Pascual">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Proveedor (Opcional)</label>
+                        <input type="text" id="prod-supplier" class="form-input" placeholder="Ej: El Corte Inglés">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Precio Base (€) *</label>
+                        <input type="number" step="0.01" id="prod-ref-price" class="form-input" required placeholder="2.95">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Margen Propio (%) (Opcional)</label>
+                        <input type="number" step="0.01" id="prod-margin" class="form-input" placeholder="Hereda el 10%">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Precio Final Manual (€) (Opcional)</label>
+                        <input type="number" step="0.01" id="prod-manual-price" class="form-input" placeholder="Sobrescribe cálculo">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">URL de Imagen (Opcional)</label>
+                    <input type="text" id="prod-image-url" class="form-input" placeholder="https://...">
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem;">
+                    <label><input type="checkbox" id="prod-active" checked> Activo</label>
+                    <label><input type="checkbox" id="prod-available" checked> En Stock</label>
+                    <label><input type="checkbox" id="prod-featured"> Destacado</label>
+                </div>
+
+                <!-- TRADUCCIONES POR IDIOMA -->
+                <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Traducciones y Enlaces de Origen</h4>
+                    <div class="lang-tabs">
+                        <button type="button" class="lang-tab-btn active" onclick="switchProdLang('es')">Español (ES)</button>
+                        <button type="button" class="lang-tab-btn" onclick="switchProdLang('en')">English (EN)</button>
+                        <button type="button" class="lang-tab-btn" onclick="switchProdLang('de')">Deutsch (DE)</button>
+                    </div>
+
+                    <div id="prod-lang-es" class="prod-lang-pane">
+                        <div class="form-group">
+                            <label class="form-label">Nombre del Producto (ES) *</label>
+                            <input type="text" id="prod-name-es" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Formato (ES) (Ej. Botella 1.5L)</label>
+                            <input type="text" id="prod-fmt-es" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Descripción (ES)</label>
+                            <textarea id="prod-desc-es" class="form-input" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">URL Origen Supermercado (ES)</label>
+                            <input type="url" id="prod-url-es" class="form-input" placeholder="https://elcorteingles.es/...">
+                        </div>
+                    </div>
+
+                    <div id="prod-lang-en" class="prod-lang-pane" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Product Name (EN)</label>
+                            <input type="text" id="prod-name-en" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Format (EN) (e.g. 1.5L Bottle)</label>
+                            <input type="text" id="prod-fmt-en" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Description (EN)</label>
+                            <textarea id="prod-desc-en" class="form-input" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Source Supermarket URL (EN)</label>
+                            <input type="url" id="prod-url-en" class="form-input">
+                        </div>
+                    </div>
+
+                    <div id="prod-lang-de" class="prod-lang-pane" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Produktname (DE)</label>
+                            <input type="text" id="prod-name-de" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Format (DE) (z.B. 1,5L Flasche)</label>
+                            <input type="text" id="prod-fmt-de" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Beschreibung (DE)</label>
+                            <textarea id="prod-desc-de" class="form-input" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Supermarkt-Quell-URL (DE)</label>
+                            <input type="url" id="prod-url-de" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-accent">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CATEGORÍA -->
+    <div id="modal-category" class="modal-backdrop" style="display: none;">
+        <div class="modal-container" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="modal-cat-title" style="font-family: 'Outfit';">Editar Categoría</h3>
+                <button class="btn btn-secondary btn-sm" onclick="closeCategoryModal()">&times;</button>
+            </div>
+            <form id="form-category" onsubmit="handleSaveCategory(event)">
+                <input type="hidden" id="cat-id" value="0">
+                <div class="form-group">
+                    <label class="form-label">Slug (Identificador único) *</label>
+                    <input type="text" id="cat-slug" class="form-input" required placeholder="bebidas, lacteos, etc.">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Orden de Visualización</label>
+                    <input type="number" id="cat-order" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="cat-active" checked> Activa</label>
+                </div>
+
+                <h4 style="font-size: 0.9rem; margin: 1rem 0 0.5rem 0;">Traducciones del Nombre</h4>
+                <div class="form-group">
+                    <label class="form-label">Nombre (ES) *</label>
+                    <input type="text" id="cat-name-es" class="form-input" required placeholder="Bebidas y Refrescos">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre (EN)</label>
+                    <input type="text" id="cat-name-en" class="form-input" placeholder="Beverages & Soft Drinks">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre (DE)</label>
+                    <input type="text" id="cat-name-de" class="form-input" placeholder="Getränke & Erfrischungen">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-accent">Guardar Categoría</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE NAVEGACIÓN Y APIS -->
+    <script>
+        let googleClientId = '';
+        let categoriesData = [];
+        let productsData = [];
+
+        // ON LOAD
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
+        });
+
+        function checkAuthStatus() {
+            fetch('../api/admin_auth.php?action=status')
+                .then(res => res.json())
+                .then(data => {
+                    googleClientId = data.google_client_id || '';
+                    if (data.authenticated) {
+                        document.getElementById('loginView').style.display = 'none';
+                        document.getElementById('dashboardView').style.display = 'block';
+                        document.getElementById('userPanel').style.display = 'flex';
+                        if (data.email) document.getElementById('userEmail').textContent = data.email;
+                        
+                        // Load data
+                        loadBookingsSelect();
+                        loadTokensList();
+                        loadCategoriesList();
+                        loadProductsList();
+                        loadSettings();
+                    } else {
+                        document.getElementById('loginView').style.display = 'flex';
+                        document.getElementById('dashboardView').style.display = 'none';
+                        document.getElementById('userPanel').style.display = 'none';
+                        initGoogleAuth();
+                    }
+                })
+                .catch(err => console.error('Auth error:', err));
+        }
+
+        function initGoogleAuth() {
+            if (googleClientId && window.google) {
+                google.accounts.id.initialize({
+                    client_id: googleClientId,
+                    callback: handleGoogleLoginResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById('googleBtnPlaceholder'),
+                    { theme: 'outline', size: 'large', width: 280 }
+                );
+            }
+        }
+
+        function handleGoogleLoginResponse(response) {
+            fetch('../api/admin_auth.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_token: response.credential })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) checkAuthStatus();
+                else alert(data.error || 'Error de autenticación');
+            });
+        }
+
+        function logoutAdmin() {
+            fetch('../api/admin_auth.php?action=logout', { method: 'POST' })
+                .then(() => checkAuthStatus());
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById('tab-' + tabId).style.display = 'block';
+        }
+
+        // --- TAB 1: TOKENS ---
+        function loadBookingsSelect() {
+            fetch('../api/shop/admin/bookings_list.php')
+                .then(res => res.json())
+                .then(data => {
+                    const sel = document.getElementById('token-booking-select');
+                    sel.innerHTML = '<option value="">-- Seleccionar Reserva --</option>';
+                    if (data.bookings) {
+                        data.bookings.forEach(b => {
+                            sel.innerHTML += `<option value="${b.id}">${b.request_number} - ${b.guest_name} (${b.checkin_date} al ${b.checkout_date})</option>`;
+                        });
+                    }
+                });
+        }
+
+        function loadTokensList() {
+            fetch('../api/shop/admin/tokens.php')
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('tokens-table-body');
+                    tbody.innerHTML = '';
+                    if (!data.tokens || data.tokens.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay enlaces generados.</td></tr>';
+                        return;
+                    }
+                    data.tokens.forEach(t => {
+                        const statusBadge = t.is_active == 1 
+                            ? '<span class="badge badge-success">Activo</span>' 
+                            : '<span class="badge badge-danger">Inactivo</span>';
+                        
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><strong>${t.request_number}</strong></td>
+                                <td>${t.guest_name}</td>
+                                <td><span class="badge badge-info">${(t.preferred_language || 'es').toUpperCase()}</span></td>
+                                <td>${t.created_at}</td>
+                                <td>${t.expires_at}</td>
+                                <td>${t.last_accessed_at || 'Nunca'}</td>
+                                <td>${statusBadge}</td>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm" onclick="toggleTokenStatus(${t.token_id})">
+                                        <i class="fa-solid fa-power-off"></i>
+                                    </button>
+                                    <button class="btn btn-accent btn-sm" onclick="regenerateToken(${t.booking_id}, '${t.preferred_language}')">
+                                        <i class="fa-solid fa-rotate-right"></i> Regenerar
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        function handleGenerateToken(e) {
+            e.preventDefault();
+            const bookingId = document.getElementById('token-booking-select').value;
+            const lang = document.getElementById('token-lang-select').value;
+            const expiry = document.getElementById('token-expiry-input').value;
+
+            fetch('../api/shop/admin/tokens.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'generate', booking_id: bookingId, preferred_language: lang, expires_at: expiry })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('generated-link-box').style.display = 'block';
+                    document.getElementById('generated-link-input').value = data.link;
+                    loadTokensList();
+                } else alert(data.error);
+            });
+        }
+
+        function regenerateToken(bookingId, lang) {
+            if (!confirm('¿Regenerar el enlace de esta reserva? El enlace anterior quedará desactivado.')) return;
+            fetch('../api/shop/admin/tokens.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'regenerate', booking_id: bookingId, preferred_language: lang })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('generated-link-box').style.display = 'block';
+                    document.getElementById('generated-link-input').value = data.link;
+                    loadTokensList();
+                } else alert(data.error);
+            });
+        }
+
+        function toggleTokenStatus(tokenId) {
+            fetch('../api/shop/admin/tokens.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'toggle', token_id: tokenId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) loadTokensList();
+                else alert(data.error);
+            });
+        }
+
+        function copyGeneratedLink() {
+            const input = document.getElementById('generated-link-input');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            alert('¡Enlace copiado al portapapeles!');
+        }
+
+        // --- TAB 2: PRODUCTOS ---
+        function loadProductsList() {
+            fetch('../api/shop/admin/products.php')
+                .then(res => res.json())
+                .then(data => {
+                    productsData = data.products || [];
+                    renderProductsTable(productsData);
+                });
+        }
+
+        function renderProductsTable(products) {
+            const tbody = document.getElementById('products-table-body');
+            tbody.innerHTML = '';
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay productos en el catálogo.</td></tr>';
+                return;
+            }
+            products.forEach(p => {
+                const nameEs = p.translations.es ? p.translations.es.name : 'Sin nombre';
+                const refEuro = (p.reference_price_cents / 100).toFixed(2);
+                const finalEuro = (p.calculated_final_price_cents / 100).toFixed(2);
+                
+                const activeBadge = p.is_active == 1 ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>';
+                const availBadge = p.is_available == 1 ? '<span class="badge badge-info">Stock OK</span>' : '<span class="badge badge-warning">Agotado</span>';
+                const featBadge = p.is_featured == 1 ? '<span class="badge badge-accent">⭐ Destacado</span>' : '';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${p.sku || '-'}</strong><br><small style="color:var(--text-muted);">${p.brand || ''}</small></td>
+                        <td>${nameEs}</td>
+                        <td><span class="badge badge-secondary">${p.category_slug || '-'}</span></td>
+                        <td>${refEuro} €</td>
+                        <td>${p.effective_margin_percent}%</td>
+                        <td><strong>${finalEuro} €</strong></td>
+                        <td>${activeBadge} ${availBadge} ${featBadge}</td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="editProduct(${p.id})"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-secondary btn-sm" onclick="toggleProductFlag(${p.id}, 'toggle_active')"><i class="fa-solid fa-power-off"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openProductModal() {
+            document.getElementById('prod-id').value = 0;
+            document.getElementById('form-product').reset();
+            document.getElementById('modal-product-title').textContent = 'Añadir Producto';
+            
+            // Populate categories dropdown
+            const catSel = document.getElementById('prod-category');
+            catSel.innerHTML = '';
+            categoriesData.forEach(c => {
+                const name = c.translations.es ? c.translations.es.name : c.slug;
+                catSel.innerHTML += `<option value="${c.id}">${name} (${c.slug})</option>`;
+            });
+
+            switchProdLang('es');
+            document.getElementById('modal-product').style.display = 'flex';
+        }
+
+        function editProduct(id) {
+            const p = productsData.find(x => x.id == id);
+            if (!p) return;
+
+            openProductModal();
+            document.getElementById('modal-product-title').textContent = 'Editar Producto #' + p.id;
+            document.getElementById('prod-id').value = p.id;
+            document.getElementById('prod-category').value = p.category_id;
+            document.getElementById('prod-sku').value = p.sku || '';
+            document.getElementById('prod-brand').value = p.brand || '';
+            document.getElementById('prod-supplier').value = p.supplier_name || '';
+            document.getElementById('prod-ref-price').value = (p.reference_price_cents / 100).toFixed(2);
+            document.getElementById('prod-margin').value = p.margin_percent !== null ? p.margin_percent : '';
+            document.getElementById('prod-manual-price').value = p.manual_final_price_cents !== null ? (p.manual_final_price_cents / 100).toFixed(2) : '';
+            document.getElementById('prod-image-url').value = p.image_url || '';
+            document.getElementById('prod-active').checked = p.is_active == 1;
+            document.getElementById('prod-available').checked = p.is_available == 1;
+            document.getElementById('prod-featured').checked = p.is_featured == 1;
+
+            ['es', 'en', 'de'].forEach(lang => {
+                const tr = p.translations[lang] || {};
+                document.getElementById(`prod-name-${lang}`).value = tr.name || '';
+                document.getElementById(`prod-fmt-${lang}`).value = tr.format_text || '';
+                document.getElementById(`prod-desc-${lang}`).value = tr.description || '';
+                document.getElementById(`prod-url-${lang}`).value = tr.source_url || '';
+            });
+        }
+
+        function switchProdLang(lang) {
+            document.querySelectorAll('.lang-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.prod-lang-pane').forEach(p => p.style.display = 'none');
+
+            event.currentTarget?.classList.add('active');
+            document.getElementById('prod-lang-' + lang).style.display = 'block';
+        }
+
+        function handleSaveProduct(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('prod-id').value);
+            const refVal = parseFloat(document.getElementById('prod-ref-price').value || '0');
+            const manVal = document.getElementById('prod-manual-price').value;
+
+            const payload = {
+                action: id > 0 ? 'update' : 'create',
+                id: id,
+                category_id: parseInt(document.getElementById('prod-category').value),
+                sku: document.getElementById('prod-sku').value,
+                brand: document.getElementById('prod-brand').value,
+                supplier_name: document.getElementById('prod-supplier').value,
+                reference_price_cents: Math.round(refVal * 100),
+                margin_percent: document.getElementById('prod-margin').value,
+                manual_final_price_cents: manVal !== '' ? Math.round(parseFloat(manVal) * 100) : null,
+                image_url: document.getElementById('prod-image-url').value,
+                is_active: document.getElementById('prod-active').checked ? 1 : 0,
+                is_available: document.getElementById('prod-available').checked ? 1 : 0,
+                is_featured: document.getElementById('prod-featured').checked ? 1 : 0,
+                translations: {
+                    es: {
+                        name: document.getElementById('prod-name-es').value,
+                        format_text: document.getElementById('prod-fmt-es').value,
+                        description: document.getElementById('prod-desc-es').value,
+                        source_url: document.getElementById('prod-url-es').value
+                    },
+                    en: {
+                        name: document.getElementById('prod-name-en').value,
+                        format_text: document.getElementById('prod-fmt-en').value,
+                        description: document.getElementById('prod-desc-en').value,
+                        source_url: document.getElementById('prod-url-en').value
+                    },
+                    de: {
+                        name: document.getElementById('prod-name-de').value,
+                        format_text: document.getElementById('prod-fmt-de').value,
+                        description: document.getElementById('prod-desc-de').value,
+                        source_url: document.getElementById('prod-url-de').value
+                    }
+                }
+            };
+
+            fetch('../api/shop/admin/products.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    closeProductModal();
+                    loadProductsList();
+                } else alert(data.error);
+            });
+        }
+
+        function toggleProductFlag(id, action) {
+            fetch('../api/shop/admin/products.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action, id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) loadProductsList();
+                else alert(data.error);
+            });
+        }
+
+        function deleteProduct(id) {
+            if (!confirm('¿Seguro que desea eliminar este producto?')) return;
+            fetch('../api/shop/admin/products.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) loadProductsList();
+                else alert(data.error);
+            });
+        }
+
+        function closeProductModal() { document.getElementById('modal-product').style.display = 'none'; }
+
+        // --- TAB 3: CATEGORÍAS ---
+        function loadCategoriesList() {
+            fetch('../api/shop/admin/categories.php')
+                .then(res => res.json())
+                .then(data => {
+                    categoriesData = data.categories || [];
+                    renderCategoriesTable(categoriesData);
+                });
+        }
+
+        function renderCategoriesTable(categories) {
+            const tbody = document.getElementById('categories-table-body');
+            tbody.innerHTML = '';
+            if (categories.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay categorías.</td></tr>';
+                return;
+            }
+            categories.forEach(c => {
+                const nameEs = c.translations.es ? c.translations.es.name : '-';
+                const nameEn = c.translations.en ? c.translations.en.name : '-';
+                const nameDe = c.translations.de ? c.translations.de.name : '-';
+                const statusBadge = c.is_active == 1 ? '<span class="badge badge-success">Activa</span>' : '<span class="badge badge-danger">Inactiva</span>';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><code>${c.slug}</code></td>
+                        <td><strong>${nameEs}</strong></td>
+                        <td>${nameEn}</td>
+                        <td>${nameDe}</td>
+                        <td>${c.display_order}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="editCategory(${c.id})"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-secondary btn-sm" onclick="toggleCategory(${c.id})"><i class="fa-solid fa-power-off"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openCategoryModal() {
+            document.getElementById('cat-id').value = 0;
+            document.getElementById('form-category').reset();
+            document.getElementById('modal-cat-title').textContent = 'Nueva Categoría';
+            document.getElementById('modal-category').style.display = 'flex';
+        }
+
+        function editCategory(id) {
+            const c = categoriesData.find(x => x.id == id);
+            if (!c) return;
+
+            openCategoryModal();
+            document.getElementById('modal-cat-title').textContent = 'Editar Categoría #' + c.id;
+            document.getElementById('cat-id').value = c.id;
+            document.getElementById('cat-slug').value = c.slug;
+            document.getElementById('cat-order').value = c.display_order;
+            document.getElementById('cat-active').checked = c.is_active == 1;
+
+            document.getElementById('cat-name-es').value = c.translations.es ? c.translations.es.name : '';
+            document.getElementById('cat-name-en').value = c.translations.en ? c.translations.en.name : '';
+            document.getElementById('cat-name-de').value = c.translations.de ? c.translations.de.name : '';
+        }
+
+        function handleSaveCategory(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('cat-id').value);
+            const payload = {
+                action: id > 0 ? 'update' : 'create',
+                id: id,
+                slug: document.getElementById('cat-slug').value,
+                display_order: parseInt(document.getElementById('cat-order').value),
+                is_active: document.getElementById('cat-active').checked ? 1 : 0,
+                translations: {
+                    es: { name: document.getElementById('cat-name-es').value },
+                    en: { name: document.getElementById('cat-name-en').value },
+                    de: { name: document.getElementById('cat-name-de').value }
+                }
+            };
+
+            fetch('../api/shop/admin/categories.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    closeCategoryModal();
+                    loadCategoriesList();
+                } else alert(data.error);
+            });
+        }
+
+        function toggleCategory(id) {
+            fetch('../api/shop/admin/categories.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'toggle', id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) loadCategoriesList();
+                else alert(data.error);
+            });
+        }
+
+        function deleteCategory(id) {
+            if (!confirm('¿Desea eliminar esta categoría?')) return;
+            fetch('../api/shop/admin/categories.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) loadCategoriesList();
+                else alert(data.error);
+            });
+        }
+
+        function closeCategoryModal() { document.getElementById('modal-category').style.display = 'none'; }
+
+        // --- TAB 4: CONFIGURACIÓN ---
+        function loadSettings() {
+            fetch('../api/shop/admin/settings.php')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.settings) {
+                        document.getElementById('setting-global-margin').value = data.settings.global_margin_percent || '10.00';
+                    }
+                });
+        }
+
+        function handleSaveSettings(e) {
+            e.preventDefault();
+            const val = document.getElementById('setting-global-margin').value;
+            fetch('../api/shop/admin/settings.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ global_margin_percent: val })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Configuración guardada correctamente.');
+                    loadProductsList();
+                } else alert(data.error);
+            });
+        }
+    </script>
+</body>
+</html>
