@@ -50,11 +50,11 @@ function get_db_connection() {
         } else {
             throw new Exception("Unsupported database driver: " . $driver);
         }
-    } catch (PDOException $e) {
-        // Safe logging of connection errors (avoid displaying credentials in production)
-        error_log("Database connection error: " . $e->getMessage());
+    } catch (Exception $e) {
+        // Log detailed error for admin diagnostics
+        error_log("Database connection error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
         header('HTTP/1.1 500 Internal Server Error');
-        echo json_encode(["error" => "Database connection error. Please try again later."]);
+        echo json_encode(["error" => "Database connection error: " . $e->getMessage()], JSON_UNESCAPED_UNICODE);
         exit;
     }
 

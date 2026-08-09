@@ -158,13 +158,22 @@ function set_shop_schema_version(PDO $pdo, int $version): void {
     }
 }
 
+function execute_sql_file(PDO $pdo, string $filePath): void {
+    if (!file_exists($filePath)) return;
+    $sql = file_get_contents($filePath);
+    // Strip single-line SQL comments
+    $cleanSql = preg_replace('/--.*$/m', '', $sql);
+    $statements = array_filter(array_map('trim', explode(';', $cleanSql)));
+    foreach ($statements as $stmt) {
+        if (!empty($stmt)) {
+            $pdo->exec($stmt);
+        }
+    }
+}
+
 function execute_baseline_schema(PDO $pdo, string $driver): void {
     if ($driver === 'sqlite') {
-        $schema_file = __DIR__ . '/db_schema.sql';
-        if (file_exists($schema_file)) {
-            $sql = file_get_contents($schema_file);
-            $pdo->exec($sql);
-        }
+        execute_sql_file($pdo, __DIR__ . '/db_schema.sql');
     } else if ($driver === 'mysql') {
         execute_mysql_baseline_schema($pdo);
     }
@@ -172,11 +181,7 @@ function execute_baseline_schema(PDO $pdo, string $driver): void {
 
 function execute_shop_v1_schema(PDO $pdo, string $driver): void {
     if ($driver === 'sqlite') {
-        $schema_file = __DIR__ . '/shop_schema.sql';
-        if (file_exists($schema_file)) {
-            $sql = file_get_contents($schema_file);
-            $pdo->exec($sql);
-        }
+        execute_sql_file($pdo, __DIR__ . '/shop_schema.sql');
     } else if ($driver === 'mysql') {
         execute_mysql_shop_v1_schema($pdo);
     }
