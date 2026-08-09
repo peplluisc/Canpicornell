@@ -29,7 +29,8 @@ class SSRFProtection {
         if (!empty($allowedHostnames)) {
             $matched = false;
             foreach ($allowedHostnames as $allowed) {
-                if ($host === $allowed || str_ends_with($host, '.' . $allowed)) {
+                $suffix = '.' . $allowed;
+                if ($host === $allowed || (strlen($host) >= strlen($suffix) && substr($host, -strlen($suffix)) === $suffix)) {
                     $matched = true;
                     break;
                 }
