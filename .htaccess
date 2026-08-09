@@ -10,19 +10,23 @@ Options -Indexes
     Deny from all
 </FilesMatch>
 
-# 4. Habilitar URLs limpias (permite acceder a cualquier página sin escribir .html)
+# 4. Habilitar Reescritura de URLs y Atajos Cortos (mod_rewrite)
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteBase /
+
+    # Atajos cortos (Shortcuts directos)
+    RewriteRule ^como-llegar/?$ es/como-llegar.html [R=301,L]
+    RewriteRule ^how-to-get-here/?$ en/como-llegar.html [R=301,L]
+    RewriteRule ^anreise/?$ de/como-llegar.html [R=301,L]
+
+    RewriteRule ^checkin/?$ es/checkin-autonomo.html [R=301,L]
+    RewriteRule ^checkin-es/?$ es/checkin-autonomo.html [R=301,L]
+    RewriteRule ^checkin-en/?$ en/checkin-autonomo.html [R=301,L]
+    RewriteRule ^checkin-de/?$ de/checkin-autonomo.html [R=301,L]
+
+    # Cargar archivos .html automáticamente sin escribir .html
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME}\.html -f
     RewriteRule ^(.*)$ $1.html [L]
 </IfModule>
-
-# 5. Redirecciones amigables directas (Shortcuts cortos)
-Redirect /como-llegar /es/como-llegar.html
-Redirect /how-to-get-here /en/como-llegar.html
-Redirect /anreise /de/como-llegar.html
-Redirect /checkin /es/checkin-autonomo.html
-Redirect /checkin-es /es/checkin-autonomo.html
-Redirect /checkin-en /en/checkin-autonomo.html
-Redirect /checkin-de /de/checkin-autonomo.html
