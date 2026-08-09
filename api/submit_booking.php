@@ -130,6 +130,25 @@ if (file_exists($cache_file)) {
 
 // 6.2. Local DB Overlap Check
 $db = get_db_connection();
+$now_str = date('Y-m-d H:i:s');
+$expire_cutoff = date('Y-m-d H:i:s', strtotime('-24 hours'));
+
+// 6.2.a Auto-expire unconfirmed pending requests older than 24h
+try {
+    $db->prepare("UPDATE booking_requests SET status = 'caducada', updated_at = ? WHERE status = 'solicitud_recibida' AND created_at < ?")
+       ->execute([$now_str, $expire_cutoff]);
+} catch (Exception $e) {
+    error_log("Error auto-expiring pending bookings: " . $e->getMessage());
+}
+
+// 6.2.b If guest is re-submitting with the same email, cancel previous unconfirmed 'solicitud_recibida' request
+try {
+    $db->prepare("UPDATE booking_requests SET status = 'caducada', updated_at = ? WHERE status = 'solicitud_recibida' AND guest_email = ?")
+       ->execute([$now_str, $email]);
+} catch (Exception $e) {
+    error_log("Error replacing previous pending booking for {$email}: " . $e->getMessage());
+}
+
 $stmt = $db->prepare("
     SELECT COUNT(*) as count 
     FROM booking_requests 
