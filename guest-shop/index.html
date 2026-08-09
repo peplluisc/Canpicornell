@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Tienda Privada de Compra Previa | Can Picornell</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.png" type="image/png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="assets/css/shop.css">
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="shop-header">
+        <div class="header-top">
+            <a href="#" class="shop-logo">
+                <img src="../assets/images/logo.png" alt="Can Picornell Logo" onerror="this.style.display='none'">
+                <span style="font-family:'Outfit'; font-weight:700; font-size:1.1rem; color:var(--primary);">Can Picornell</span>
+            </a>
+            
+            <div class="lang-selector">
+                <button id="lang-btn-es" class="lang-btn active" onclick="switchLanguage('es')">ES</button>
+                <button id="lang-btn-en" class="lang-btn" onclick="switchLanguage('en')">EN</button>
+                <button id="lang-btn-de" class="lang-btn" onclick="switchLanguage('de')">DE</button>
+            </div>
+        </div>
+
+        <!-- STAY BANNER -->
+        <div id="stay-banner" class="stay-banner">
+            <!-- Rendered by JS -->
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main id="shop-main-content">
+        <div class="container">
+            <!-- SEARCH BAR -->
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" class="search-input" placeholder="Buscar productos..." oninput="renderProducts()">
+            </div>
+
+            <!-- CATEGORIES SCROLL -->
+            <div id="categories-scroll" class="categories-scroll">
+                <!-- Rendered by JS -->
+            </div>
+
+            <!-- PRODUCTS GRID -->
+            <div id="products-grid" class="products-grid">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </main>
+
+    <!-- FLOATING CART BAR -->
+    <div id="cart-floating-bar" class="cart-floating-bar" style="display: none;" onclick="openCartModal()">
+        <!-- Rendered by JS -->
+    </div>
+
+    <!-- CART MODAL SHEET -->
+    <div id="cart-modal" class="cart-modal" style="display: none;">
+        <!-- Rendered by JS -->
+    </div>
+
+    <!-- SCRIPT -->
+    <script src="assets/js/shop-app.js"></script>
+</body>
+</html>
