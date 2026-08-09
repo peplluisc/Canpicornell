@@ -316,20 +316,30 @@
                 });
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function renderHeader() {
             const sc = document.getElementById('stay-card');
             sc.innerHTML = `
-                <h2 class="guest-name">${orderData.guest_name}</h2>
+                <h2 class="guest-name">${escapeHtml(orderData.guest_name)}</h2>
                 <div style="font-size:0.9rem; color:var(--text-muted); line-height:1.4;">
-                    <div><strong>Reserva:</strong> ${orderData.request_number} &nbsp;|&nbsp; <strong>Pedido:</strong> ${orderData.order_number}</div>
-                    <div><strong>Entrada:</strong> ${orderData.checkin_date} &rarr; <strong>Salida:</strong> ${orderData.checkout_date} (${orderData.nights} noches)</div>
-                    <div><strong>Estado actual:</strong> <span style="font-weight:700; color:var(--accent);">${orderData.status}</span></div>
+                    <div><strong>Reserva:</strong> ${escapeHtml(orderData.request_number)} &nbsp;|&nbsp; <strong>Pedido:</strong> ${escapeHtml(orderData.order_number)}</div>
+                    <div><strong>Entrada:</strong> ${escapeHtml(orderData.checkin_date)} &rarr; <strong>Salida:</strong> ${escapeHtml(orderData.checkout_date)} (${orderData.nights} noches)</div>
+                    <div><strong>Estado actual:</strong> <span style="font-weight:700; color:var(--accent);">${escapeHtml(orderData.status)}</span></div>
                 </div>
             `;
 
             if (orderData.status === 'PURCHASED' || orderData.status === 'DELIVERED' || orderData.status === 'PAID') {
                 document.getElementById('btn-finish-purchase').style.opacity = '0.6';
-                document.getElementById('btn-finish-purchase').innerHTML = `<i class="fa-solid fa-check-double"></i> Compra ya finalizada (${orderData.status})`;
+                document.getElementById('btn-finish-purchase').innerHTML = `<i class="fa-solid fa-check-double"></i> Compra ya finalizada (${escapeHtml(orderData.status)})`;
             }
         }
 
@@ -346,15 +356,15 @@
                 const isPurchased = st === 'PURCHASED';
                 const isUnavail = st === 'UNAVAILABLE';
 
-                const fmtText = it.format_text ? `<div class="item-meta">${it.format_text}</div>` : '';
-                const brandText = it.brand ? `<div class="item-meta">${it.brand}</div>` : '';
+                const fmtText = it.format_text ? `<div class="item-meta">${escapeHtml(it.format_text)}</div>` : '';
+                const brandText = it.brand ? `<div class="item-meta">${escapeHtml(it.brand)}</div>` : '';
 
                 html += `
                     <div class="checklist-item ${isPurchased ? 'purchased' : ''} ${isUnavail ? 'unavailable' : ''}">
                         <div class="item-left">
                             <span class="item-qty-badge">${it.quantity} &times;</span>
                             <div>
-                                <div class="item-title">${it.product_name_snapshot}</div>
+                                <div class="item-title">${escapeHtml(it.product_name_snapshot)}</div>
                                 ${brandText}
                                 ${fmtText}
                             </div>
@@ -381,7 +391,7 @@
                 container.innerHTML += `
                     <div class="notes-box">
                         <strong><i class="fa-solid fa-comment-dots"></i> Solicitud adicional del Huésped:</strong>
-                        <p style="margin-top:4px; white-space:pre-line;">${orderData.guest_notes}</p>
+                        <p style="margin-top:4px; white-space:pre-line;">${escapeHtml(orderData.guest_notes)}</p>
                     </div>
                 `;
             }
@@ -389,7 +399,7 @@
                 container.innerHTML += `
                     <div style="background:#e0f2fe; border:1px solid #0284c7; border-radius:var(--radius); padding:1rem; margin-top:1rem; color:#0369a1;">
                         <strong><i class="fa-solid fa-lock"></i> Observaciones Internas Admin:</strong>
-                        <p style="margin-top:4px; white-space:pre-line;">${orderData.admin_notes}</p>
+                        <p style="margin-top:4px; white-space:pre-line;">${escapeHtml(orderData.admin_notes)}</p>
                     </div>
                 `;
             }

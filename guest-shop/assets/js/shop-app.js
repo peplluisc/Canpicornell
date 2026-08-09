@@ -12,6 +12,16 @@ let productsData = [];
 let cartItemsMap = {}; // product_id -> quantity
 let activeCategory = 'all';
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 const I18N = {
     es: {
         welcome: "Hola",

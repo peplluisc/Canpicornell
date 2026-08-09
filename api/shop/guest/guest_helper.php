@@ -4,6 +4,8 @@
  * Handles token validation, rate limiting, order calculations, and multi-language fallback.
  */
 
+date_default_timezone_set('Europe/Madrid');
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -15,6 +17,7 @@ function send_guest_json($data, $code = 200) {
     header('Content-Type: application/json; charset=utf-8');
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Pragma: no-cache');
+    header('Referrer-Policy: no-referrer');
     header('X-Robots-Tag: noindex, nofollow', true);
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
@@ -137,6 +140,8 @@ function calculate_final_price_cents(int $ref_cents, ?float $margin_percent, ?in
 
 function get_or_create_draft_order(PDO $db, int $booking_id, int $token_id) {
     try {
+        $db->beginTransaction();
+
         // Check for any existing order (DRAFT or SUBMITTED/PENDING_REVIEW/etc.)
         $stmt = $db->prepare("
             SELECT id, order_number, status, subtotal_cents, margin_cents, total_cents, guest_notes, submitted_at, created_at
@@ -149,6 +154,7 @@ function get_or_create_draft_order(PDO $db, int $booking_id, int $token_id) {
         $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($order) {
+            $db->commit();
             return $order;
         }
 
@@ -164,6 +170,8 @@ function get_or_create_draft_order(PDO $db, int $booking_id, int $token_id) {
         $ins->execute([$booking_id, $token_id, $order_number, $now, $now]);
         $order_id = $db->lastInsertId();
 
+        $db->commit();
+
         return [
             'id' => $order_id,
             'order_number' => $order_number,
@@ -176,6 +184,23 @@ function get_or_create_draft_order(PDO $db, int $booking_id, int $token_id) {
             'created_at' => $now
         ];
     } catch (Exception $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        // Fallback retry query if another request created it during race condition
+        $stmt = $db->prepare("
+            SELECT id, order_number, status, subtotal_cents, margin_cents, total_cents, guest_notes, submitted_at, created_at
+            FROM shop_orders
+            WHERE booking_id = ? AND token_id = ?
+            ORDER BY id DESC
+            LIMIT 1
+        ");
+        $stmt->execute([$booking_id, $token_id]);
+        $retryOrder = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($retryOrder) {
+            return $retryOrder;
+        }
+
         error_log("Error getting/creating draft order: " . $e->getMessage());
         send_guest_json(['error' => 'No se pudo inicializar el pedido.'], 500);
     }

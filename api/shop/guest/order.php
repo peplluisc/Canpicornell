@@ -150,5 +150,9 @@ function send_shop_order_notification_to_owner(array $context, array $order, arr
     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
     $headers .= "From: {$from_name} <{$from_email}>\r\n";
 
-    @mail($contact_email, $subject, $body, $headers, $mail_params);
+    try {
+        @mail($contact_email, $subject, $body, $headers, $mail_params);
+    } catch (\Throwable $mEx) {
+        error_log("Order email notification failed non-fatally: " . $mEx->getMessage());
+    }
 }
