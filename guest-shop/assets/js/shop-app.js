@@ -1,6 +1,6 @@
 /**
  * Can Picornell Private Guest Shop JavaScript Application
- * Mobile-first Vanilla JS SPA with server-side cart persistence and multi-language support.
+ * Mobile-first Vanilla JS SPA with server-side cart persistence, 2-level category tree navigation, and multi-language support.
  */
 
 let rawToken = '';
@@ -10,7 +10,8 @@ let orderData = null;
 let categoriesData = [];
 let productsData = [];
 let cartItemsMap = {}; // product_id -> quantity
-let activeCategory = 'all';
+let activeMainCategory = 'all';
+let activeSubCategory = 'all';
 
 function escapeHtml(str) {
     if (!str) return '';
@@ -121,10 +122,33 @@ document.addEventListener('DOMContentLoaded', () => {
 function parseUrlParams() {
     const params = new URLSearchParams(window.location.search);
     rawToken = params.get('t') || '';
-    const lang = params.get('lang');
-    if (lang && ['es', 'en', 'de'].includes(lang)) {
-        currentLang = lang;
-    }
+    currentLang = (params.get('lang') || 'es').toLowerCase();
+    if (!['es', 'en', 'de'].includes(currentLang)) currentLang = 'es';
+    
+    updateLangUI();
+}
+
+function updateLangUI() {
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        const l = btn.getAttribute('data-lang');
+        btn.classList.toggle('active', l === currentLang);
+    });
+
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.placeholder = I18N[currentLang].search_placeholder;
+}
+
+function switchLanguage(lang) {
+    currentLang = lang;
+    const url = new URL(window.location.href);
+    url.searchParams.set('lang', lang);
+    window.history.replaceState({}, '', url);
+    updateLangUI();
+
+    if (guestData) renderStayBanner();
+    if (categoriesData.length > 0) renderCategoryChips();
+    loadCatalog();
+    loadCart();
 }
 
 function loadGuestContext() {
@@ -135,14 +159,17 @@ function loadGuestContext() {
                 showErrorUI(data.error || I18N[currentLang].err_invalid_token);
                 return;
             }
-            currentLang = data.language || currentLang;
+
             guestData = data.guest;
             orderData = data.order;
+            if (data.preferred_language && !new URLSearchParams(window.location.search).get('lang')) {
+                currentLang = data.preferred_language;
+                updateLangUI();
+            }
 
-            updateLangSelector();
             renderStayBanner();
 
-            if (orderData && orderData.status !== 'DRAFT') {
+            if (orderData && ['PENDING_REVIEW', 'APPROVED', 'PURCHASED', 'DELIVERED', 'PAID'].includes(orderData.status)) {
                 renderOrderSubmittedUI();
             } else {
                 loadCatalog();
@@ -152,35 +179,6 @@ function loadGuestContext() {
         .catch(err => {
             showErrorUI(I18N[currentLang].err_invalid_token);
         });
-}
-
-function updateLangSelector() {
-    ['es', 'en', 'de'].forEach(l => {
-        const btn = document.getElementById('lang-btn-' + l);
-        if (btn) {
-            btn.classList.toggle('active', l === currentLang);
-        }
-    });
-}
-
-function switchLanguage(newLang) {
-    if (currentLang === newLang) return;
-    currentLang = newLang;
-
-    // Update URL query string without reloading page
-    const url = new URL(window.location);
-    url.searchParams.set('lang', newLang);
-    window.history.replaceState({}, '', url);
-
-    updateLangSelector();
-    renderStayBanner();
-
-    if (orderData && orderData.status !== 'DRAFT') {
-        renderOrderSubmittedUI();
-    } else {
-        loadCatalog();
-        loadCart();
-    }
 }
 
 function renderStayBanner() {
@@ -203,7 +201,6 @@ function renderStayBanner() {
 }
 
 function loadCatalog() {
-    const catContainer = document.getElementById('categories-container');
     fetch(`../api/shop/guest/catalog.php?t=${encodeURIComponent(rawToken)}&lang=${currentLang}`)
         .then(res => res.json())
         .then(data => {
@@ -217,23 +214,67 @@ function loadCatalog() {
 
 function renderCategoryChips() {
     const txt = I18N[currentLang];
-    const scroll = document.getElementById('categories-scroll');
-    if (!scroll) return;
+    const scroll1 = document.getElementById('categories-scroll');
+    const scroll2 = document.getElementById('subcategories-scroll');
+    if (!scroll1) return;
 
-    let html = `<button class="category-chip ${activeCategory === 'all' ? 'active' : ''}" onclick="selectCategory('all')">${txt.all_products}</button>`;
-    html += `<button class="category-chip ${activeCategory === 'featured' ? 'active' : ''}" onclick="selectCategory('featured')">⭐ ${txt.featured}</button>`;
+    // Filter main categories (parent_id is null or empty)
+    const mainCategories = categoriesData.filter(c => !c.parent_id);
 
-    categoriesData.forEach(c => {
-        html += `<button class="category-chip ${activeCategory === c.slug ? 'active' : ''}" onclick="selectCategory('${c.slug}')">${c.name}</button>`;
+    // Level 1: Main Category Pills
+    let html1 = `<button class="category-chip ${activeMainCategory === 'all' ? 'active' : ''}" onclick="selectMainCategory('all')">${txt.all_products}</button>`;
+    html1 += `<button class="category-chip ${activeMainCategory === 'featured' ? 'active' : ''}" onclick="selectMainCategory('featured')">⭐ ${txt.featured}</button>`;
+
+    mainCategories.forEach(c => {
+        html1 += `<button class="category-chip ${activeMainCategory === c.slug ? 'active' : ''}" onclick="selectMainCategory('${c.slug}')">${escapeHtml(c.name)}</button>`;
     });
 
-    scroll.innerHTML = html;
+    scroll1.innerHTML = html1;
+
+    // Level 2: Subcategory Pills (if a main category with subcategories is selected)
+    if (!scroll2) return;
+
+    const currentMainObj = mainCategories.find(c => c.slug === activeMainCategory);
+    if (!currentMainObj) {
+        scroll2.style.display = 'none';
+        return;
+    }
+
+    const subCategories = categoriesData.filter(c => c.parent_id == currentMainObj.id);
+
+    if (subCategories.length === 0) {
+        scroll2.style.display = 'none';
+        return;
+    }
+
+    scroll2.style.display = 'flex';
+
+    let allSubLabel = currentLang === 'en' ? `All ${currentMainObj.name}` : (currentLang === 'de' ? `Alle ${currentMainObj.name}` : `Todo en ${currentMainObj.name}`);
+
+    let html2 = `<button class="subcategory-chip ${activeSubCategory === 'all' ? 'active' : ''}" onclick="selectSubCategory('all')">${escapeHtml(allSubLabel)}</button>`;
+
+    subCategories.forEach(sc => {
+        html2 += `<button class="subcategory-chip ${activeSubCategory === sc.slug ? 'active' : ''}" onclick="selectSubCategory('${sc.slug}')">${escapeHtml(sc.name)}</button>`;
+    });
+
+    scroll2.innerHTML = html2;
+}
+
+function selectMainCategory(catSlug) {
+    activeMainCategory = catSlug;
+    activeSubCategory = 'all';
+    renderCategoryChips();
+    renderProducts();
+}
+
+function selectSubCategory(subSlug) {
+    activeSubCategory = subSlug;
+    renderCategoryChips();
+    renderProducts();
 }
 
 function selectCategory(catSlug) {
-    activeCategory = catSlug;
-    renderCategoryChips();
-    renderProducts();
+    selectMainCategory(catSlug);
 }
 
 function renderProducts() {
@@ -243,11 +284,26 @@ function renderProducts() {
     const searchQuery = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
 
     let filtered = productsData.filter(p => {
-        if (activeCategory === 'featured' && !p.is_featured) return false;
-        if (activeCategory !== 'all' && activeCategory !== 'featured' && p.category_slug !== activeCategory) return false;
+        if (activeMainCategory === 'featured' && !p.is_featured) return false;
+
+        if (activeMainCategory !== 'all' && activeMainCategory !== 'featured') {
+            const mainCatObj = categoriesData.find(c => c.slug === activeMainCategory && !c.parent_id);
+            const mainCatId = mainCatObj ? mainCatObj.id : null;
+
+            if (activeSubCategory !== 'all') {
+                if (p.category_slug !== activeSubCategory) return false;
+            } else {
+                const matchesMain = (
+                    p.category_slug === activeMainCategory ||
+                    p.parent_category_slug === activeMainCategory ||
+                    (mainCatId && p.parent_category_id == mainCatId)
+                );
+                if (!matchesMain) return false;
+            }
+        }
 
         if (searchQuery) {
-            const h = (p.name + ' ' + p.description + ' ' + p.brand + ' ' + p.format).toLowerCase();
+            const h = ((p.name || '') + ' ' + (p.description || '') + ' ' + (p.brand || '') + ' ' + (p.format || '')).toLowerCase();
             if (!h.includes(searchQuery)) return false;
         }
         return true;
@@ -262,8 +318,8 @@ function renderProducts() {
     filtered.forEach(p => {
         const qty = cartItemsMap[p.id] || 0;
         const imgUrl = p.image_url || '../favicon.png';
-        const brandText = p.brand ? `<div class="product-meta">${p.brand}</div>` : '';
-        const fmtText = p.format ? `<div class="product-meta">${p.format}</div>` : '';
+        const brandText = p.brand ? `<div class="product-meta">${escapeHtml(p.brand)}</div>` : '';
+        const fmtText = p.format ? `<div class="product-meta">${escapeHtml(p.format)}</div>` : '';
 
         const qtyCtrl = qty > 0 ? `
             <div class="qty-control">
@@ -281,10 +337,10 @@ function renderProducts() {
             <div class="product-card ${p.is_featured ? 'featured' : ''}">
                 ${p.is_featured ? `<span class="featured-badge">★ ${I18N[currentLang].featured}</span>` : ''}
                 <div class="product-img-wrapper">
-                    <img src="${imgUrl}" alt="${p.name}" class="product-img" loading="lazy" onerror="this.src='../favicon.png'">
+                    <img src="${imgUrl}" alt="${escapeHtml(p.name)}" class="product-img" loading="lazy" onerror="this.src='../favicon.png'">
                 </div>
                 <div>
-                    <h3 class="product-name">${p.name}</h3>
+                    <h3 class="product-name">${escapeHtml(p.name)}</h3>
                     ${brandText}
                     ${fmtText}
                 </div>
@@ -366,7 +422,7 @@ function openCartModal() {
             itemsHtml += `
                 <div class="cart-item">
                     <div>
-                        <div class="cart-item-name">${it.name}</div>
+                        <div class="cart-item-name">${escapeHtml(it.name)}</div>
                         <div class="cart-item-price">${it.unit_price_formatted} c/u</div>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
@@ -394,7 +450,7 @@ function openCartModal() {
 
                 <div style="margin-top:1rem;">
                     <label class="form-label" style="font-size:0.85rem; font-weight:600;">${txt.notes_label}</label>
-                    <textarea id="guest-notes-input" class="notes-textarea" rows="2" placeholder="${txt.notes_placeholder}" onchange="saveGuestNotes()">${orderData.guest_notes || ''}</textarea>
+                    <textarea id="guest-notes-input" class="notes-textarea" rows="2" placeholder="${txt.notes_placeholder}" onchange="saveGuestNotes()">${escapeHtml(orderData.guest_notes || '')}</textarea>
                 </div>
 
                 <div class="important-notice">

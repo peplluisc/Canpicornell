@@ -19,7 +19,7 @@ $global_margin = get_global_margin($db);
 // 1. Fetch active categories
 try {
     $c_stmt = $db->query("
-        SELECT id, slug, display_order 
+        SELECT id, parent_id, slug, display_order 
         FROM shop_categories 
         WHERE is_active = 1 
         ORDER BY display_order ASC, id ASC
@@ -43,6 +43,7 @@ try {
         $name = $cat_trans_map[$cat['id']][$lang] ?? ($cat_trans_map[$cat['id']]['es'] ?? $cat['slug']);
         $categories[] = [
             'id' => $cat['id'],
+            'parent_id' => $cat['parent_id'],
             'slug' => $cat['slug'],
             'name' => $name
         ];
@@ -54,7 +55,7 @@ try {
             p.id, p.category_id, p.sku, p.brand,
             p.reference_price_cents, p.margin_percent, p.manual_final_price_cents,
             p.image_url, p.display_order, p.is_featured, p.priority,
-            c.slug AS category_slug, c.parent_id,
+            c.slug AS category_slug, c.parent_id, pcat.slug AS parent_category_slug,
             t_req.name AS req_name, t_req.description AS req_desc, t_req.format_text AS req_fmt,
             t_es.name AS es_name, t_es.description AS es_desc, t_es.format_text AS es_fmt
         FROM shop_products p
@@ -116,6 +117,8 @@ try {
             'id' => $p['id'],
             'category_id' => $p['category_id'],
             'category_slug' => $p['category_slug'],
+            'parent_category_id' => $p['parent_id'],
+            'parent_category_slug' => $p['parent_category_slug'] ?? null,
             'name' => $name,
             'brand' => $p['brand'] ?? '',
             'format' => $fmt,
