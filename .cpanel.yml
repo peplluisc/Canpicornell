@@ -1,0 +1,4 @@
+---
+deployment:
+  tasks:
+    - /bin/rsync -av --exclude='.git' --exclude='.env' ./ $DEPLOYPATH
