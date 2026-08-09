@@ -465,8 +465,8 @@
                 <button id="tab-btn-settings" class="tab-btn" onclick="switchTab('settings')">
                     <i class="fa-solid fa-sliders"></i> Configuración
                 </button>
-                <button class="tab-btn disabled" title="Fase 5">
-                    <i class="fa-solid fa-cloud-arrow-down"></i> Importar <span class="badge badge-info">Fase 5</span>
+                <button id="tab-btn-import" class="tab-btn" onclick="switchTab('import')">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Importar Vía URL
                 </button>
             </nav>
 
@@ -667,6 +667,46 @@
                     </form>
                 </div>
             </div>
+
+            <!-- TAB 5: IMPORTAR VÍA URL (FASE 5) -->
+            <div id="tab-import" class="tab-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Asistente de Importación de Productos vía URL</h3>
+                    </div>
+                    
+                    <form id="form-import-analyze" onsubmit="handleAnalyzeImportUrl(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Proveedor</label>
+                                <select id="import-supplier" class="form-input" required>
+                                    <option value="El Corte Inglés">El Corte Inglés / Supermercado</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Idioma de la URL</label>
+                                <select id="import-language" class="form-input" required>
+                                    <option value="es">Español (ES)</option>
+                                    <option value="en">English (EN)</option>
+                                    <option value="de">Deutsch (DE)</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label class="form-label">URL Pública del Producto</label>
+                                <input type="url" id="import-url-input" class="form-input" required placeholder="https://www.elcorteingles.es/supermercado/B001018850400245-casa-tarradellas-pizza-de-jamon-y-queso-envase-405-g/">
+                            </div>
+                        </div>
+                        <button type="submit" id="btn-analyze-import" class="btn btn-accent" style="margin-top: 1rem;">
+                            <i class="fa-solid fa-magnifying-glass"></i> ANALIZAR PRODUCTO
+                        </button>
+                    </form>
+
+                    <!-- CONTENEDOR PREVISUALIZACIÓN -->
+                    <div id="import-preview-box" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -861,6 +901,7 @@
         let categoriesData = [];
         let productsData = [];
         let activeOrderDetail = null;
+        let lastImportParsed = null;
 
         const STATUS_BADGES = {
             'PENDING_REVIEW': '<span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pendiente de revisar</span>',
@@ -1041,7 +1082,6 @@
                 `;
             });
 
-            // Add Product Dropdown HTML if editable
             let addProductHtml = '';
             if (isEditable) {
                 let prodOpts = '<option value="">-- Seleccionar producto para añadir --</option>';
@@ -1058,7 +1098,6 @@
                 `;
             }
 
-            // Action Buttons based on Status
             let actionButtonsHtml = '';
             if (o.status === 'PENDING_REVIEW') {
                 actionButtonsHtml += `<button class="btn btn-accent" onclick="transitionOrderStatus('approve')"><i class="fa-solid fa-circle-check"></i> APROBAR PEDIDO</button>`;
@@ -1222,6 +1261,237 @@
         }
 
         function closeOrderDetailModal() { document.getElementById('modal-order-detail').style.display = 'none'; }
+
+        // --- TAB 5: IMPORTAR VÍA URL (FASE 5) ---
+        function handleAnalyzeImportUrl(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-analyze-import');
+            const supplier = document.getElementById('import-supplier').value;
+            const lang = document.getElementById('import-language').value;
+            const url = document.getElementById('import-url-input').value;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ANALIZANDO...';
+
+            fetch('../api/shop/importers/import_api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'analyze', supplier: supplier, language: lang, url: url })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> ANALIZAR PRODUCTO';
+
+                if (!data.success) {
+                    alert(data.error || 'Error al analizar la URL.');
+                    return;
+                }
+                lastImportParsed = data.parsed;
+                renderImportPreview(data.parsed, data.duplicate_warning);
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> ANALIZAR PRODUCTO';
+                alert('Error al conectar con el servidor.');
+            });
+        }
+
+        function renderImportPreview(p, dupWarning) {
+            const container = document.getElementById('import-preview-box');
+            container.style.display = 'block';
+
+            const st = p.extraction_status || {};
+            const refEuro = (p.reference_price_cents / 100).toFixed(2);
+            const finalEuro = (p.calculated_final_price_cents / 100).toFixed(2);
+
+            let statusTableHtml = `
+                <div style="background:#f8fafc; border:1px solid var(--border-color); padding:1rem; border-radius:8px; margin-bottom:1rem;">
+                    <strong style="color:var(--primary); font-size:0.9rem;"><i class="fa-solid fa-square-check"></i> Diagnóstico de Extracción (Método: ${p.extraction_method}):</strong>
+                    <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:0.85rem; margin-top:8px;">
+                        <span>Nombre: ${st.name ? '✓' : '⚠'}</span>
+                        <span>Marca: ${st.brand ? '✓' : '⚠'}</span>
+                        <span>GTIN/EAN: ${st.gtin ? '✓' : '⚠'} (${p.gtin || '-'})</span>
+                        <span>Formato: ${st.format ? '✓' : '⚠'}</span>
+                        <span>Precio: ${st.price ? '✓' : '⚠'}</span>
+                        <span>Imagen: ${st.image ? '✓' : '⚠'}</span>
+                    </div>
+                </div>
+            `;
+
+            let priceReviewHtml = '';
+            if (p.requires_price_review && p.detected_prices && p.detected_prices.length > 0) {
+                let radioOpts = '';
+                p.detected_prices.forEach((dp, idx) => {
+                    const isChecked = idx === 0 ? 'checked' : '';
+                    radioOpts += `
+                        <label style="display:block; margin-top:4px;">
+                            <input type="radio" name="import-price-choice" value="${dp.price_cents}" ${isChecked} onchange="updateImportPriceChoice(${dp.price_cents})">
+                            ${dp.label}: <strong>${dp.formatted}</strong>
+                        </label>
+                    `;
+                });
+                priceReviewHtml = `
+                    <div style="background:#fef3c7; border:1px solid #f59e0b; padding:1rem; border-radius:8px; margin-bottom:1rem; color:#78350F;">
+                        <strong>⚠️ Promoción u Oferta Detectada:</strong>
+                        <p style="font-size:0.85rem; margin-bottom:6px;">Seleccione el precio de referencia oficial del supermercado a guardar:</p>
+                        ${radioOpts}
+                    </div>
+                `;
+            }
+
+            let dupHtml = '';
+            if (dupWarning) {
+                dupHtml = `
+                    <div style="background:#e0f2fe; border:1px solid #0284c7; padding:1rem; border-radius:8px; margin-bottom:1rem; color:#0369a1;">
+                        <strong><i class="fa-solid fa-circle-info"></i> Coincidencia de Producto Existente:</strong>
+                        <p style="font-size:0.85rem; margin:4px 0 8px 0;">${dupWarning.message}</p>
+                        <label style="display:block; font-size:0.85rem;">
+                            <input type="radio" name="import-mode-choice" value="new_product" onchange="toggleImportModeUI('new_product')"> Crear como NUEVO producto independiente
+                        </label>
+                        <label style="display:block; font-size:0.85rem; margin-top:4px;">
+                            <input type="radio" name="import-mode-choice" value="add_translation" checked onchange="toggleImportModeUI('add_translation')">
+                            Añadir esta traducción (${p.target_language.toUpperCase()}) al producto existente #${dupWarning.existing_product_id} (${dupWarning.name})
+                        </label>
+                    </div>
+                `;
+            }
+
+            let catOptions = '<option value="">-- Seleccionar Categoría --</option>';
+            categoriesData.forEach(c => {
+                const name = c.translations.es ? c.translations.es.name : c.slug;
+                catOptions += `<option value="${c.id}">${name} (${c.slug})</option>`;
+            });
+
+            container.innerHTML = `
+                <h4 style="font-family:'Outfit'; color:var(--primary); margin-bottom:1rem;"><i class="fa-solid fa-eye"></i> Previsualización y Edición de Importación</h4>
+                
+                ${statusTableHtml}
+                ${priceReviewHtml}
+                ${dupHtml}
+
+                <form id="form-import-save" onsubmit="handleSaveImportedProduct(event)">
+                    <input type="hidden" id="imp-dup-id" value="${dupWarning ? dupWarning.existing_product_id : 0}">
+                    <input type="hidden" id="imp-mode" value="${dupWarning ? 'add_translation' : 'new_product'}">
+                    <input type="hidden" id="imp-spid" value="${p.supplier_product_id || ''}">
+                    <input type="hidden" id="imp-gtin" value="${p.gtin || ''}">
+                    <input type="hidden" id="imp-source-url" value="${p.source_url || ''}">
+                    <input type="hidden" id="imp-language" value="${p.target_language || 'es'}">
+
+                    <div id="imp-cat-wrapper" class="form-group" style="${dupWarning ? 'display:none;' : ''}">
+                        <label class="form-label">Categoría del Catálogo *</label>
+                        <select id="imp-category-id" class="form-input">${catOptions}</select>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nombre (${p.target_language.toUpperCase()}) *</label>
+                            <input type="text" id="imp-name" class="form-input" value="${p.name || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Marca</label>
+                            <input type="text" id="imp-brand" class="form-input" value="${p.brand || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Formato</label>
+                            <input type="text" id="imp-format" class="form-input" value="${p.format_text || ''}" placeholder="Ej. Garrafa 6.25 L">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Precio Supermercado (€) *</label>
+                            <input type="number" step="0.01" id="imp-ref-price" class="form-input" value="${refEuro}" required oninput="recalcImportFinalPrice()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Margen (%)</label>
+                            <input type="number" step="0.01" id="imp-margin" class="form-input" value="${p.global_margin_percent}" oninput="recalcImportFinalPrice()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Precio Final Can Picornell (€)</label>
+                            <input type="text" id="imp-final-price-display" class="form-input" value="${finalEuro} €" readonly style="background:#f1f5f9; font-weight:700;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">URL de Imagen</label>
+                        <input type="text" id="imp-image-url" class="form-input" value="${p.image_url || ''}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Descripción (${p.target_language.toUpperCase()})</label>
+                        <textarea id="imp-description" class="form-input" rows="2">${p.description || ''}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-accent" style="margin-top:1rem; padding:12px 24px; font-size:1rem;">
+                        <i class="fa-solid fa-floppy-disk"></i> GUARDAR EN EL CATÁLOGO
+                    </button>
+                </form>
+            `;
+        }
+
+        function updateImportPriceChoice(priceCents) {
+            const euro = (priceCents / 100).toFixed(2);
+            document.getElementById('imp-ref-price').value = euro;
+            recalcImportFinalPrice();
+        }
+
+        function toggleImportModeUI(mode) {
+            document.getElementById('imp-mode').value = mode;
+            const catWrap = document.getElementById('imp-cat-wrapper');
+            if (catWrap) {
+                catWrap.style.display = (mode === 'new_product') ? 'block' : 'none';
+            }
+        }
+
+        function recalcImportFinalPrice() {
+            const refEuro = parseFloat(document.getElementById('imp-ref-price').value || '0');
+            const margin = parseFloat(document.getElementById('imp-margin').value || '10.0');
+            const refCents = Math.round(refEuro * 100);
+            const finalCents = Math.round(refCents * (1.0 + (margin / 100.0)));
+            document.getElementById('imp-final-price-display').value = (finalCents / 100).toFixed(2) + ' €';
+        }
+
+        function handleSaveImportedProduct(e) {
+            e.preventDefault();
+            const mode = document.getElementById('imp-mode').value;
+            const refEuro = parseFloat(document.getElementById('imp-ref-price').value || '0');
+
+            const payload = {
+                action: 'save',
+                mode: mode,
+                existing_product_id: parseInt(document.getElementById('imp-dup-id').value || '0'),
+                category_id: parseInt(document.getElementById('imp-category-id')?.value || '0'),
+                brand: document.getElementById('imp-brand').value,
+                supplier_name: 'El Corte Inglés',
+                supplier_product_id: document.getElementById('imp-spid').value,
+                gtin: document.getElementById('imp-gtin').value,
+                reference_price_cents: Math.round(refEuro * 100),
+                margin_percent: document.getElementById('imp-margin').value,
+                image_url: document.getElementById('imp-image-url').value,
+                source_url: document.getElementById('imp-source-url').value,
+                language: document.getElementById('imp-language').value,
+                name: document.getElementById('imp-name').value,
+                description: document.getElementById('imp-description').value,
+                format_text: document.getElementById('imp-format').value
+            };
+
+            fetch('../api/shop/importers/import_api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    document.getElementById('import-preview-box').style.display = 'none';
+                    document.getElementById('form-import-analyze').reset();
+                    loadProductsList();
+                    switchTab('products');
+                } else alert(data.error);
+            });
+        }
 
         // --- TAB 1: TOKENS ---
         function loadBookingsSelect() {

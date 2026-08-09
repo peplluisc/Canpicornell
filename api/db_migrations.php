@@ -41,6 +41,44 @@ function run_db_migrations(PDO $pdo, string $driver) {
     if ($current_version < 2) {
         migrate_schema_v2($pdo, $driver);
         set_shop_schema_version($pdo, 2);
+        $current_version = 2;
+    }
+
+    // 6. Version 3 Migration: Add supplier_product_id and gtin to shop_products
+    if ($current_version < 3) {
+        migrate_schema_v3($pdo, $driver);
+        set_shop_schema_version($pdo, 3);
+    }
+}
+
+function migrate_schema_v3(PDO $pdo, string $driver): void {
+    try {
+        if ($driver === 'sqlite') {
+            $cols = $pdo->query("PRAGMA table_info(shop_products)")->fetchAll(PDO::FETCH_ASSOC);
+            $has_spid = false;
+            $has_gtin = false;
+            foreach ($cols as $c) {
+                if ($c['name'] === 'supplier_product_id') $has_spid = true;
+                if ($c['name'] === 'gtin') $has_gtin = true;
+            }
+            if (!$has_spid) {
+                $pdo->exec("ALTER TABLE shop_products ADD COLUMN supplier_product_id TEXT;");
+            }
+            if (!$has_gtin) {
+                $pdo->exec("ALTER TABLE shop_products ADD COLUMN gtin TEXT;");
+            }
+        } else if ($driver === 'mysql') {
+            $cols = $pdo->query("SHOW COLUMNS FROM shop_products LIKE 'supplier_product_id'")->fetchAll();
+            if (empty($cols)) {
+                $pdo->exec("ALTER TABLE shop_products ADD COLUMN supplier_product_id VARCHAR(100);");
+            }
+            $cols2 = $pdo->query("SHOW COLUMNS FROM shop_products LIKE 'gtin'")->fetchAll();
+            if (empty($cols2)) {
+                $pdo->exec("ALTER TABLE shop_products ADD COLUMN gtin VARCHAR(100);");
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Schema v3 migration error: " . $e->getMessage());
     }
 }
 

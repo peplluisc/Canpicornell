@@ -91,6 +91,8 @@ CREATE TABLE IF NOT EXISTS shop_products (
     sku TEXT UNIQUE,
     brand TEXT,
     supplier_name TEXT,
+    supplier_product_id TEXT,
+    gtin TEXT,
     reference_price_cents INTEGER NOT NULL DEFAULT 0,
     margin_percent REAL DEFAULT NULL,
     manual_final_price_cents INTEGER DEFAULT NULL,
