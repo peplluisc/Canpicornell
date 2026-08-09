@@ -141,20 +141,14 @@ function get_shop_schema_version(PDO $pdo): int {
 function set_shop_schema_version(PDO $pdo, int $version): void {
     $now = date('Y-m-d H:i:s');
     try {
-        $stmt = $pdo->prepare("
-            INSERT INTO shop_settings (setting_key, setting_value, updated_at)
-            VALUES ('schema_version', ?, ?)
-            ON CONFLICT(setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = EXCLUDED.updated_at
-        ");
-        $stmt->execute([strval($version), $now]);
-    } catch (PDOException $e) {
-        // Fallback for MySQL syntax
-        $stmt = $pdo->prepare("
-            INSERT INTO shop_settings (setting_key, setting_value, updated_at)
-            VALUES ('schema_version', ?, ?)
-            ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = VALUES(updated_at)
-        ");
-        $stmt->execute([strval($version), $now]);
+        $upd = $pdo->prepare("UPDATE shop_settings SET setting_value = ?, updated_at = ? WHERE setting_key = 'schema_version'");
+        $upd->execute([strval($version), $now]);
+        if ($upd->rowCount() === 0) {
+            $ins = $pdo->prepare("INSERT INTO shop_settings (setting_key, setting_value, updated_at) VALUES ('schema_version', ?, ?)");
+            $ins->execute([strval($version), $now]);
+        }
+    } catch (Exception $e) {
+        error_log("Error setting schema version: " . $e->getMessage());
     }
 }
 

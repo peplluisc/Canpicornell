@@ -70,21 +70,11 @@ if ($method === 'POST') {
 
         if ($global_margin !== null) {
             $formatted_margin = number_format($global_margin, 2, '.', '');
-            try {
-                $stmt = $db->prepare("
-                    INSERT INTO shop_settings (setting_key, setting_value, updated_at)
-                    VALUES ('global_margin_percent', ?, ?)
-                    ON CONFLICT(setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = EXCLUDED.updated_at
-                ");
-                $stmt->execute([$formatted_margin, $now]);
-            } catch (Exception $ex) {
-                // MySQL fallback
-                $stmt = $db->prepare("
-                    INSERT INTO shop_settings (setting_key, setting_value, updated_at)
-                    VALUES ('global_margin_percent', ?, ?)
-                    ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = VALUES(updated_at)
-                ");
-                $stmt->execute([$formatted_margin, $now]);
+            $upd = $db->prepare("UPDATE shop_settings SET setting_value = ?, updated_at = ? WHERE setting_key = 'global_margin_percent'");
+            $upd->execute([$formatted_margin, $now]);
+            if ($upd->rowCount() === 0) {
+                $ins = $db->prepare("INSERT INTO shop_settings (setting_key, setting_value, updated_at) VALUES ('global_margin_percent', ?, ?)");
+                $ins->execute([$formatted_margin, $now]);
             }
         }
 

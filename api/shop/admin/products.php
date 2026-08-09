@@ -205,33 +205,19 @@ if ($method === 'POST') {
                     $t_add = trim($translations[$lang]['additional_information'] ?? '');
                     $t_src = trim($translations[$lang]['source_url'] ?? '');
 
-                    try {
-                        $tr_stmt = $db->prepare("
+                    $t_upd = $db->prepare("
+                        UPDATE shop_product_translations SET
+                            name = ?, description = ?, format_text = ?, additional_information = ?, source_url = ?
+                        WHERE product_id = ? AND language = ?
+                    ");
+                    $t_upd->execute([$t_name, $t_desc, $t_fmt, $t_add, $t_src, $product_id, $lang]);
+                    if ($t_upd->rowCount() === 0) {
+                        $t_ins = $db->prepare("
                             INSERT INTO shop_product_translations (
                                 product_id, language, name, description, format_text, additional_information, source_url
                             ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                            ON CONFLICT(product_id, language) DO UPDATE SET
-                                name = EXCLUDED.name,
-                                description = EXCLUDED.description,
-                                format_text = EXCLUDED.format_text,
-                                additional_information = EXCLUDED.additional_information,
-                                source_url = EXCLUDED.source_url
                         ");
-                        $tr_stmt->execute([$product_id, $lang, $t_name, $t_desc, $t_fmt, $t_add, $t_src]);
-                    } catch (Exception $ex) {
-                        // MySQL fallback
-                        $tr_stmt = $db->prepare("
-                            INSERT INTO shop_product_translations (
-                                product_id, language, name, description, format_text, additional_information, source_url
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                            ON DUPLICATE KEY UPDATE
-                                name = VALUES(name),
-                                description = VALUES(description),
-                                format_text = VALUES(format_text),
-                                additional_information = VALUES(additional_information),
-                                source_url = VALUES(source_url)
-                        ");
-                        $tr_stmt->execute([$product_id, $lang, $t_name, $t_desc, $t_fmt, $t_add, $t_src]);
+                        $t_ins->execute([$product_id, $lang, $t_name, $t_desc, $t_fmt, $t_add, $t_src]);
                     }
                 }
             }

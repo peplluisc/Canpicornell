@@ -126,22 +126,11 @@ if ($method === 'POST') {
                 if (isset($translations[$lang]) && !empty(trim($translations[$lang]['name'] ?? ''))) {
                     $name = trim($translations[$lang]['name']);
                     
-                    // Upsert translation
-                    $tr_stmt = $db->prepare("
-                        INSERT INTO shop_category_translations (category_id, language, name)
-                        VALUES (?, ?, ?)
-                        ON CONFLICT(category_id, language) DO UPDATE SET name = EXCLUDED.name
-                    ");
-                    try {
-                        $tr_stmt->execute([$category_id, $lang, $name]);
-                    } catch (Exception $ex) {
-                        // MySQL fallback
-                        $tr_stmt = $db->prepare("
-                            INSERT INTO shop_category_translations (category_id, language, name)
-                            VALUES (?, ?, ?)
-                            ON DUPLICATE KEY UPDATE name = VALUES(name)
-                        ");
-                        $tr_stmt->execute([$category_id, $lang, $name]);
+                    $t_upd = $db->prepare("UPDATE shop_category_translations SET name = ? WHERE category_id = ? AND language = ?");
+                    $t_upd->execute([$name, $category_id, $lang]);
+                    if ($t_upd->rowCount() === 0) {
+                        $t_ins = $db->prepare("INSERT INTO shop_category_translations (category_id, language, name) VALUES (?, ?, ?)");
+                        $t_ins->execute([$category_id, $lang, $name]);
                     }
                 }
             }
