@@ -1,0 +1,10 @@
+# Protect sensitive database, migration, and log files in /api/
+<FilesMatch "\.(sqlite|db|sql|log|env)$">
+    Order deny,allow
+    Deny from all
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+</IfModule>

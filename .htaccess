@@ -15,6 +15,10 @@ Options -Indexes
     RewriteEngine On
     RewriteBase /
 
+    # Forzar HTTPS en todo el sitio
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     # Atajos cortos (Shortcuts directos)
     RewriteRule ^como-llegar/?$ es/como-llegar.html [R=301,L]
     RewriteRule ^how-to-get-here/?$ en/como-llegar.html [R=301,L]

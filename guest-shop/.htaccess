@@ -1,0 +1,7 @@
+# Security & Privacy Headers for Guest Shop Module
+<IfModule mod_headers.c>
+    Header set Referrer-Policy "no-referrer"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
