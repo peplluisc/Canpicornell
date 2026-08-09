@@ -1278,7 +1278,15 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'analyze', supplier: supplier, language: lang, url: url })
             })
-            .then(res => res.json())
+            .then(res => res.text().then(text => {
+                let data = null;
+                try {
+                    data = JSON.parse(text);
+                } catch(err) {
+                    throw new Error('El servidor devolvió una respuesta no válida: ' + text.substring(0, 250));
+                }
+                return data;
+            }))
             .then(data => {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> ANALIZAR PRODUCTO';
@@ -1293,7 +1301,7 @@
             .catch(err => {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> ANALIZAR PRODUCTO';
-                alert('Error al conectar con el servidor.');
+                alert(err.message || 'Error al conectar con el servidor.');
             });
         }
 
@@ -1481,7 +1489,15 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
-            .then(res => res.json())
+            .then(res => res.text().then(text => {
+                let data = null;
+                try {
+                    data = JSON.parse(text);
+                } catch(err) {
+                    throw new Error('El servidor devolvió una respuesta no válida: ' + text.substring(0, 250));
+                }
+                return data;
+            }))
             .then(data => {
                 if (data.success) {
                     alert(data.message);
@@ -1490,6 +1506,9 @@
                     loadProductsList();
                     switchTab('products');
                 } else alert(data.error);
+            })
+            .catch(err => {
+                alert(err.message || 'Error al guardar el producto.');
             });
         }
 
