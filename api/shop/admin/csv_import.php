@@ -332,14 +332,27 @@ if ($action === 'execute') {
             // B. Process Subcategory if present
             if (!empty($subCatName)) {
                 $subSlug = slugify($catName . '-' . $subCatName);
+                $singleSubSlug = slugify($subCatName);
                 $subKey = $mainCatId . '_' . $subSlug;
 
                 if (!isset($subCatCache[$subKey])) {
-                    $scStmt = $db->prepare("SELECT id FROM shop_categories WHERE slug = ? AND parent_id = ?");
-                    $scStmt->execute([$subSlug, $mainCatId]);
-                    $subId = $scStmt->fetchColumn();
+                    $scStmt = $db->prepare("
+                        SELECT c.id, c.parent_id 
+                        FROM shop_categories c 
+                        LEFT JOIN shop_category_translations t ON c.id = t.category_id 
+                        WHERE (c.slug = ? OR c.slug = ? OR LOWER(t.name) = LOWER(?))
+                        LIMIT 1
+                    ");
+                    $scStmt->execute([$subSlug, $singleSubSlug, $subCatName]);
+                    $subRow = $scStmt->fetch(PDO::FETCH_ASSOC);
 
-                    if (!$subId) {
+                    if ($subRow) {
+                        $subId = $subRow['id'];
+                        if (empty($subRow['parent_id']) || $subRow['parent_id'] != $mainCatId) {
+                            $updSC = $db->prepare("UPDATE shop_categories SET parent_id = ? WHERE id = ?");
+                            $updSC->execute([$mainCatId, $subId]);
+                        }
+                    } else {
                         $insSC = $db->prepare("INSERT INTO shop_categories (parent_id, slug, display_order, is_active, created_at) VALUES (?, ?, 10, 1, ?)");
                         $insSC->execute([$mainCatId, $subSlug, $now]);
                         $subId = $db->lastInsertId();

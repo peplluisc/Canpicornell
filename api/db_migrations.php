@@ -69,6 +69,51 @@ function run_db_migrations(PDO $pdo, string $driver) {
     if ($current_version < 6) {
         migrate_schema_v6($pdo, $driver);
         set_shop_schema_version($pdo, 6);
+        $current_version = 6;
+    }
+
+    // 10. Version 7 Migration: Fix parent_id hierarchy for existing subcategories
+    if ($current_version < 7) {
+        migrate_schema_v7($pdo, $driver);
+        set_shop_schema_version($pdo, 7);
+    }
+}
+
+function migrate_schema_v7(PDO $pdo, string $driver): void {
+    try {
+        $mappings = [
+            'Bebidas' => ['Agua', 'Refrescos', 'Zumos'],
+            'Frescos y refrigerados' => ['Huevos', 'Leche', 'Yogures', 'Mantequilla', 'Queso', 'Embutidos'],
+            'Desayuno' => ['Café', 'Cereales', 'Galletas', 'Pan', 'Cacao', 'Mermelada'],
+            'Despensa' => ['Arroz', 'Aceite', 'Conservas', 'Salsas', 'Pasta', 'Legumbres', 'Azúcar', 'Sal', 'Especias'],
+            'Snacks' => ['Aperitivos', 'Frutos secos', 'Patatas fritas', 'Chocolates', 'Dulces']
+        ];
+
+        foreach ($mappings as $parentName => $subNames) {
+            $pStmt = $pdo->prepare("
+                SELECT c.id FROM shop_categories c 
+                JOIN shop_category_translations t ON c.id = t.category_id 
+                WHERE (LOWER(t.name) = LOWER(?) OR LOWER(c.slug) = LOWER(?)) AND c.parent_id IS NULL 
+                LIMIT 1
+            ");
+            $pStmt->execute([$parentName, $parentName]);
+            $parentId = $pStmt->fetchColumn();
+
+            if ($parentId) {
+                foreach ($subNames as $subName) {
+                    $uStmt = $pdo->prepare("
+                        UPDATE shop_categories 
+                        SET parent_id = ? 
+                        WHERE id IN (
+                            SELECT category_id FROM shop_category_translations WHERE LOWER(name) = LOWER(?)
+                        ) AND id != ?
+                    ");
+                    $uStmt->execute([$parentId, $subName, $parentId]);
+                }
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Schema v7 migration error: " . $e->getMessage());
     }
 }
 
