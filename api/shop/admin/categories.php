@@ -35,7 +35,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     try {
         $c_stmt = $db->query("
-            SELECT id, slug, display_order, is_active, created_at 
+            SELECT id, parent_id, slug, display_order, is_active, created_at 
             FROM shop_categories 
             ORDER BY display_order ASC, id ASC
         ");

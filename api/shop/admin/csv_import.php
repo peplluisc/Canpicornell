@@ -312,47 +312,90 @@ if ($action === 'execute') {
                 continue;
             }
 
-            $catName = trim(get_row_val($r, ['category', 'categoría', 'categoria', 'cat'], 'General'));
-            if (empty($catName)) $catName = 'General';
-            $subCatName = trim(get_row_val($r, ['subcategory', 'subcategoría', 'subcategoria', 'subcat']));
+            $catKey = trim(get_row_val($r, ['category_key', 'category_slug', 'cat_key']));
+            $subKey = trim(get_row_val($r, ['subcategory_key', 'subcategory_slug', 'subcat_key']));
+
+            $catEs = trim(get_row_val($r, ['category_es', 'categoría_es', 'categoria_es', 'cat_es', 'category', 'categoría', 'categoria', 'cat']));
+            $catEn = trim(get_row_val($r, ['category_en', 'categoría_en', 'categoria_en', 'cat_en']));
+            $catDe = trim(get_row_val($r, ['category_de', 'categoría_de', 'categoria_de', 'cat_de']));
+
+            $subEs = trim(get_row_val($r, ['subcategory_es', 'subcategoría_es', 'subcategoria_es', 'subcat_es', 'subcategory', 'subcategoría', 'subcategoria', 'subcat']));
+            $subEn = trim(get_row_val($r, ['subcategory_en', 'subcategoría_en', 'subcategoria_en', 'subcat_en']));
+            $subDe = trim(get_row_val($r, ['subcategory_de', 'subcategoría_de', 'subcategoria_de', 'subcat_de']));
+
+            if (empty($catEs) && !empty($catKey)) $catEs = ucfirst($catKey);
+            if (empty($catEs)) $catEs = 'General';
+
+            // Primary slug for main category
+            $catPrimarySlug = slugify(!empty($catKey) ? $catKey : $catEs);
+            $catEsSlug = slugify($catEs);
+            $mainCatCacheKey = $catPrimarySlug . '_' . $catEsSlug;
 
             // A. Process Main Category
-            $catSlug = slugify($catName);
-            if (!isset($catCache[$catSlug])) {
-                $cStmt = $db->prepare("SELECT id FROM shop_categories WHERE slug = ? AND parent_id IS NULL");
-                $cStmt->execute([$catSlug]);
+            if (!isset($catCache[$mainCatCacheKey])) {
+                $cStmt = $db->prepare("
+                    SELECT c.id 
+                    FROM shop_categories c 
+                    LEFT JOIN shop_category_translations t ON c.id = t.category_id 
+                    WHERE c.parent_id IS NULL AND (
+                        c.slug = ? OR c.slug = ? OR LOWER(t.name) = LOWER(?) OR LOWER(t.name) = LOWER(?)
+                    )
+                    LIMIT 1
+                ");
+                $cStmt->execute([$catPrimarySlug, $catEsSlug, $catEs, $catKey]);
                 $catId = $cStmt->fetchColumn();
 
                 if (!$catId) {
                     $insC = $db->prepare("INSERT INTO shop_categories (parent_id, slug, display_order, is_active, created_at) VALUES (NULL, ?, 10, 1, ?)");
-                    $insC->execute([$catSlug, $now]);
+                    $insC->execute([$catPrimarySlug, $now]);
                     $catId = $db->lastInsertId();
                     $createdCategories++;
-
-                    // Translation ES
-                    $insCT = $db->prepare("INSERT INTO shop_category_translations (category_id, language, name) VALUES (?, 'es', ?)");
-                    $insCT->execute([$catId, $catName]);
                 }
-                $catCache[$catSlug] = $catId;
+                $catCache[$mainCatCacheKey] = $catId;
             }
-            $mainCatId = $catCache[$catSlug];
+            $mainCatId = $catCache[$mainCatCacheKey];
+
+            // Update/Upsert Main Category Translations (ES, EN, DE)
+            $mainCatLangs = ['es' => $catEs, 'en' => $catEn, 'de' => $catDe];
+            foreach ($mainCatLangs as $langCode => $val) {
+                if ($val === '') continue; // Rule 12: preserve existing if CSV value is empty
+
+                $chkT = $db->prepare("SELECT id, name FROM shop_category_translations WHERE category_id = ? AND language = ?");
+                $chkT->execute([$mainCatId, $langCode]);
+                $existingT = $chkT->fetch(PDO::FETCH_ASSOC);
+
+                if ($existingT) {
+                    if ($existingT['name'] !== $val) {
+                        $updT = $db->prepare("UPDATE shop_category_translations SET name = ? WHERE id = ?");
+                        $updT->execute([$val, $existingT['id']]);
+                    }
+                } else {
+                    $insT = $db->prepare("INSERT INTO shop_category_translations (category_id, language, name) VALUES (?, ?, ?)");
+                    $insT->execute([$mainCatId, $langCode, $val]);
+                }
+            }
+
             $targetCatId = $mainCatId;
 
             // B. Process Subcategory if present
-            if (!empty($subCatName)) {
-                $subSlug = slugify($catName . '-' . $subCatName);
-                $singleSubSlug = slugify($subCatName);
-                $subKey = $mainCatId . '_' . $subSlug;
+            if (!empty($subKey) || !empty($subEs)) {
+                if (empty($subEs) && !empty($subKey)) $subEs = ucfirst($subKey);
+                $subPrimarySlug = slugify(!empty($subKey) ? $subKey : $subEs);
+                $subCombinedSlug = slugify((!empty($catKey) ? $catKey : $catEs) . '-' . (!empty($subKey) ? $subKey : $subEs));
+                $subEsSlug = slugify($subEs);
+                $subCatCacheKey = $mainCatId . '_' . $subPrimarySlug . '_' . $subEsSlug;
 
-                if (!isset($subCatCache[$subKey])) {
+                if (!isset($subCatCache[$subCatCacheKey])) {
                     $scStmt = $db->prepare("
                         SELECT c.id, c.parent_id 
                         FROM shop_categories c 
                         LEFT JOIN shop_category_translations t ON c.id = t.category_id 
-                        WHERE (c.slug = ? OR c.slug = ? OR LOWER(t.name) = LOWER(?))
+                        WHERE (
+                            c.slug = ? OR c.slug = ? OR c.slug = ? OR LOWER(t.name) = LOWER(?) OR LOWER(t.name) = LOWER(?)
+                        )
                         LIMIT 1
                     ");
-                    $scStmt->execute([$subSlug, $singleSubSlug, $subCatName]);
+                    $scStmt->execute([$subPrimarySlug, $subCombinedSlug, $subEsSlug, $subEs, $subKey]);
                     $subRow = $scStmt->fetch(PDO::FETCH_ASSOC);
 
                     if ($subRow) {
@@ -363,17 +406,35 @@ if ($action === 'execute') {
                         }
                     } else {
                         $insSC = $db->prepare("INSERT INTO shop_categories (parent_id, slug, display_order, is_active, created_at) VALUES (?, ?, 10, 1, ?)");
-                        $insSC->execute([$mainCatId, $subSlug, $now]);
+                        $insSC->execute([$mainCatId, $subPrimarySlug, $now]);
                         $subId = $db->lastInsertId();
                         $createdSubcategories++;
-
-                        // Translation ES
-                        $insSCT = $db->prepare("INSERT INTO shop_category_translations (category_id, language, name) VALUES (?, 'es', ?)");
-                        $insSCT->execute([$subId, $subCatName]);
                     }
-                    $subCatCache[$subKey] = $subId;
+                    $subCatCache[$subCatCacheKey] = $subId;
                 }
-                $targetCatId = $subCatCache[$subKey];
+                $subCatId = $subCatCache[$subCatCacheKey];
+
+                // Update/Upsert Subcategory Translations (ES, EN, DE)
+                $subCatLangs = ['es' => $subEs, 'en' => $subEn, 'de' => $subDe];
+                foreach ($subCatLangs as $langCode => $val) {
+                    if ($val === '') continue; // Rule 12: preserve existing if CSV value is empty
+
+                    $chkST = $db->prepare("SELECT id, name FROM shop_category_translations WHERE category_id = ? AND language = ?");
+                    $chkST->execute([$subCatId, $langCode]);
+                    $existingST = $chkST->fetch(PDO::FETCH_ASSOC);
+
+                    if ($existingST) {
+                        if ($existingST['name'] !== $val) {
+                            $updST = $db->prepare("UPDATE shop_category_translations SET name = ? WHERE id = ?");
+                            $updST->execute([$val, $existingST['id']]);
+                        }
+                    } else {
+                        $insST = $db->prepare("INSERT INTO shop_category_translations (category_id, language, name) VALUES (?, ?, ?)");
+                        $insST->execute([$subCatId, $langCode, $val]);
+                    }
+                }
+
+                $targetCatId = $subCatId;
             }
 
             // C. Rule 2: Auto-detect image at /images/products/{product_code}.jpg
