@@ -65,9 +65,12 @@ function parse_csv_data(string $content): array {
     // Strip UTF-8 BOM if present
     $content = preg_replace('/^[\x{FEFF}\x{FFFE}]/u', '', $content);
 
-    // Detect delimiter (; or ,)
+    // Detect delimiter (; or , or \t)
     $firstLine = strtok($content, "\r\n");
-    $delimiter = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
+    $delimiter = (substr_count($firstLine, ';') >= substr_count($firstLine, ',')) ? ';' : ',';
+    if (substr_count($firstLine, "\t") > substr_count($firstLine, $delimiter)) {
+        $delimiter = "\t";
+    }
 
     $stream = fopen('php://memory', 'r+');
     fwrite($stream, $content);
@@ -78,7 +81,16 @@ function parse_csv_data(string $content): array {
         throw new Exception("El archivo CSV no contiene un encabezado válido.");
     }
 
-    $header = array_map(function($h) { return trim(strtolower($h)); }, $header);
+    $headerClean = [];
+    foreach ($header as $h) {
+        $hClean = trim($h);
+        if (function_exists('mb_strtolower')) {
+            $hClean = mb_strtolower($hClean, 'UTF-8');
+        } else {
+            $hClean = strtolower($hClean);
+        }
+        $headerClean[] = $hClean;
+    }
 
     $rows = [];
     $lineNumber = 1;
@@ -86,8 +98,15 @@ function parse_csv_data(string $content): array {
         $lineNumber++;
         if (count($data) < 2) continue; // Skip empty lines
         $row = ['_line_number' => $lineNumber];
-        foreach ($header as $idx => $colName) {
-            $row[$colName] = isset($data[$idx]) ? trim($data[$idx]) : '';
+        foreach ($headerClean as $idx => $colName) {
+            $val = isset($data[$idx]) ? trim($data[$idx]) : '';
+            $row[$colName] = $val;
+
+            // Also save unaccented ASCII key for fallback matching (e.g. categoría_es -> categoria_es, código -> codigo)
+            $unaccentedKey = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $colName) ?: strtolower($colName);
+            if ($unaccentedKey !== $colName) {
+                $row[$unaccentedKey] = $val;
+            }
         }
         $rows[] = $row;
     }
@@ -97,8 +116,18 @@ function parse_csv_data(string $content): array {
 
 function get_row_val(array $row, array $aliases, string $default = ''): string {
     foreach ($aliases as $a) {
-        if (isset($row[$a]) && trim($row[$a]) !== '') {
-            return trim($row[$a]);
+        $key = trim($a);
+        if (function_exists('mb_strtolower')) {
+            $keyLower = mb_strtolower($key, 'UTF-8');
+        } else {
+            $keyLower = strtolower($key);
+        }
+        if (isset($row[$keyLower]) && trim($row[$keyLower]) !== '') {
+            return trim($row[$keyLower]);
+        }
+        $unaccented = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $keyLower) ?: strtolower($keyLower);
+        if (isset($row[$unaccented]) && trim($row[$unaccented]) !== '') {
+            return trim($row[$unaccented]);
         }
     }
     return $default;
@@ -189,12 +218,20 @@ if ($action === 'preview') {
             $existingSkus[$skuRow['sku']] = true;
         }
 
+        $catAliases = ['category_es', 'categoría_es', 'categoria_es', 'category_key', 'category_slug', 'cat_key', 'category', 'categoría', 'categoria', 'cat', 'category_name_es', 'cat_nombre_es', 'nombre_categoria_es', 'nombre_categoria'];
+        $subcatAliases = ['subcategory_es', 'subcategoría_es', 'subcategoria_es', 'subcategory_key', 'subcategory_slug', 'subcat_key', 'subcategory', 'subcategoría', 'subcategoria', 'subcat', 'subcategory_name_es', 'subcat_nombre_es', 'nombre_subcategoria_es', 'nombre_subcategoria'];
+
         $previewRows = [];
         foreach ($rows as $r) {
             $lineNum = $r['_line_number'];
             $code = get_row_val($r, ['product_code', 'código', 'codigo', 'sku', 'code']);
-            $cat = get_row_val($r, ['category', 'categoría', 'categoria', 'cat']);
-            $subcat = get_row_val($r, ['subcategory', 'subcategoría', 'subcategoria', 'subcat']);
+            $catKey = get_row_val($r, ['category_key', 'category_slug', 'cat_key', 'key_category']);
+            $cat = get_row_val($r, $catAliases);
+            if (empty($cat) && !empty($catKey)) $cat = ucfirst($catKey);
+
+            $subKey = get_row_val($r, ['subcategory_key', 'subcategory_slug', 'subcat_key', 'key_subcategory']);
+            $subcat = get_row_val($r, $subcatAliases);
+            if (empty($subcat) && !empty($subKey)) $subcat = ucfirst($subKey);
 
             // Validate product_code: ^B\d{15}$
             if (empty($code) || !preg_match('/^B\d{15}$/', $code)) {
@@ -224,9 +261,9 @@ if ($action === 'preview') {
                     'format' => get_row_val($r, ['format', 'formato']),
                     'price_cents' => intval(get_row_val($r, ['price_cents', 'precio_cents', 'price', 'precio', 'reference_price_cents'], '0')),
                     'priority' => get_row_val($r, ['priority', 'prioridad'], 'A'),
-                    'name_es' => get_row_val($r, ['name_es', 'nombre_es']),
-                    'name_en' => get_row_val($r, ['name_en', 'nombre_en']),
-                    'name_de' => get_row_val($r, ['name_de', 'nombre_de']),
+                    'name_es' => get_row_val($r, ['name_es', 'nombre_es', 'name', 'nombre', 'title_es', 'titulo_es', 'title', 'titulo', 'product_name']),
+                    'name_en' => get_row_val($r, ['name_en', 'nombre_en', 'title_en', 'titulo_en']),
+                    'name_de' => get_row_val($r, ['name_de', 'nombre_de', 'title_de', 'titulo_de']),
                     'is_new' => $isNew,
                     'has_image' => $hasImage
                 ];
@@ -259,8 +296,8 @@ if ($action === 'execute') {
 
         $db->beginTransaction();
 
-        $catCache = []; // slug -> id
-        $subCatCache = []; // parent_id + sub_slug -> id
+        $catCache = []; // key -> id
+        $subCatCache = []; // parent_id + sub_key -> id
 
         $filasLeidas = count($rows);
         $productosNuevos = 0;
@@ -306,52 +343,62 @@ if ($action === 'execute') {
             $isActive = intval($activeRaw);
 
             // Rule 11. Validation 4: name_es missing check
-            $nameEs = trim(get_row_val($r, ['name_es', 'nombre_es']));
+            $nameEs = trim(get_row_val($r, ['name_es', 'nombre_es', 'name', 'nombre', 'title_es', 'titulo_es', 'title', 'titulo', 'product_name']));
             if (empty($nameEs)) {
                 $detallesError[] = ['fila' => $lineNum, 'product_code' => $code, 'motivo' => 'Falta name_es en la fila (nombre en español obligatorio).'];
                 continue;
             }
 
-            $catKey = trim(get_row_val($r, ['category_key', 'category_slug', 'cat_key']));
-            $subKey = trim(get_row_val($r, ['subcategory_key', 'subcategory_slug', 'subcat_key']));
+            $catKey = trim(get_row_val($r, ['category_key', 'category_slug', 'cat_key', 'key_category']));
+            $subKey = trim(get_row_val($r, ['subcategory_key', 'subcategory_slug', 'subcat_key', 'key_subcategory']));
 
-            $catEs = trim(get_row_val($r, ['category_es', 'categoría_es', 'categoria_es', 'cat_es', 'category', 'categoría', 'categoria', 'cat']));
-            $catEn = trim(get_row_val($r, ['category_en', 'categoría_en', 'categoria_en', 'cat_en']));
-            $catDe = trim(get_row_val($r, ['category_de', 'categoría_de', 'categoria_de', 'cat_de']));
+            $catEs = trim(get_row_val($r, ['category_es', 'categoría_es', 'categoria_es', 'cat_es', 'category', 'categoría', 'categoria', 'cat', 'category_name_es', 'cat_nombre_es', 'nombre_categoria_es', 'nombre_categoria']));
+            $catEn = trim(get_row_val($r, ['category_en', 'categoría_en', 'categoria_en', 'cat_en', 'category_name_en', 'cat_nombre_en', 'nombre_categoria_en']));
+            $catDe = trim(get_row_val($r, ['category_de', 'categoría_de', 'categoria_de', 'cat_de', 'category_name_de', 'cat_nombre_de', 'nombre_categoria_de']));
 
-            $subEs = trim(get_row_val($r, ['subcategory_es', 'subcategoría_es', 'subcategoria_es', 'subcat_es', 'subcategory', 'subcategoría', 'subcategoria', 'subcat']));
-            $subEn = trim(get_row_val($r, ['subcategory_en', 'subcategoría_en', 'subcategoria_en', 'subcat_en']));
-            $subDe = trim(get_row_val($r, ['subcategory_de', 'subcategoría_de', 'subcategoria_de', 'subcat_de']));
+            $subEs = trim(get_row_val($r, ['subcategory_es', 'subcategoría_es', 'subcategoria_es', 'subcat_es', 'subcategory', 'subcategoría', 'subcategoria', 'subcat', 'subcategory_name_es', 'subcat_nombre_es', 'nombre_subcategoria_es', 'nombre_subcategoria']));
+            $subEn = trim(get_row_val($r, ['subcategory_en', 'subcategoría_en', 'subcategoria_en', 'subcat_en', 'subcategory_name_en', 'subcat_nombre_en', 'nombre_subcategoria_en']));
+            $subDe = trim(get_row_val($r, ['subcategory_de', 'subcategoría_de', 'subcategoria_de', 'subcat_de', 'subcategory_name_de', 'subcat_nombre_de', 'nombre_subcategoria_de']));
 
             if (empty($catEs) && !empty($catKey)) $catEs = ucfirst($catKey);
             if (empty($catEs)) $catEs = 'General';
 
-            // Primary slug for main category
-            $catPrimarySlug = slugify(!empty($catKey) ? $catKey : $catEs);
-            $catEsSlug = slugify($catEs);
-            $mainCatCacheKey = $catPrimarySlug . '_' . $catEsSlug;
+            $mainCatCacheKey = md5(($catKey ?: 'none') . '_' . $catEs . '_' . $catEn . '_' . $catDe);
 
             // A. Process Main Category
             if (!isset($catCache[$mainCatCacheKey])) {
-                $cStmt = $db->prepare("
-                    SELECT c.id 
-                    FROM shop_categories c 
-                    LEFT JOIN shop_category_translations t ON c.id = t.category_id 
-                    WHERE c.parent_id IS NULL AND (
-                        c.slug = ? OR c.slug = ? OR LOWER(t.name) = LOWER(?) OR LOWER(t.name) = LOWER(?)
-                    )
-                    LIMIT 1
-                ");
-                $cStmt->execute([$catPrimarySlug, $catEsSlug, $catEs, $catKey]);
-                $catId = $cStmt->fetchColumn();
+                $catSlugsToSearch = array_unique(array_filter([
+                    slugify($catKey),
+                    slugify($catEs),
+                    slugify($catEn),
+                    slugify($catDe)
+                ]));
 
-                if (!$catId) {
+                $mainCatId = null;
+                if (!empty($catSlugsToSearch)) {
+                    $placeholders = implode(',', array_fill(0, count($catSlugsToSearch), '?'));
+                    $cStmt = $db->prepare("
+                        SELECT c.id 
+                        FROM shop_categories c 
+                        LEFT JOIN shop_category_translations t ON c.id = t.category_id 
+                        WHERE c.parent_id IS NULL AND (
+                            c.slug IN ($placeholders) OR t.name = ? OR t.name = ? OR t.name = ? OR t.name = ?
+                        )
+                        LIMIT 1
+                    ");
+                    $queryParams = array_merge($catSlugsToSearch, [$catEs, $catKey, $catEn, $catDe]);
+                    $cStmt->execute($queryParams);
+                    $mainCatId = $cStmt->fetchColumn();
+                }
+
+                if (!$mainCatId) {
+                    $primaryCatSlug = !empty($catKey) ? slugify($catKey) : slugify($catEs);
                     $insC = $db->prepare("INSERT INTO shop_categories (parent_id, slug, display_order, is_active, created_at) VALUES (NULL, ?, 10, 1, ?)");
-                    $insC->execute([$catPrimarySlug, $now]);
-                    $catId = $db->lastInsertId();
+                    $insC->execute([$primaryCatSlug, $now]);
+                    $mainCatId = $db->lastInsertId();
                     $createdCategories++;
                 }
-                $catCache[$mainCatCacheKey] = $catId;
+                $catCache[$mainCatCacheKey] = $mainCatId;
             }
             $mainCatId = $catCache[$mainCatCacheKey];
 
@@ -380,37 +427,51 @@ if ($action === 'execute') {
             // B. Process Subcategory if present
             if (!empty($subKey) || !empty($subEs)) {
                 if (empty($subEs) && !empty($subKey)) $subEs = ucfirst($subKey);
-                $subPrimarySlug = slugify(!empty($subKey) ? $subKey : $subEs);
-                $subCombinedSlug = slugify((!empty($catKey) ? $catKey : $catEs) . '-' . (!empty($subKey) ? $subKey : $subEs));
-                $subEsSlug = slugify($subEs);
-                $subCatCacheKey = $mainCatId . '_' . $subPrimarySlug . '_' . $subEsSlug;
+                $subCatCacheKey = md5($mainCatId . '_' . ($subKey ?: 'none') . '_' . $subEs . '_' . $subEn . '_' . $subDe);
 
                 if (!isset($subCatCache[$subCatCacheKey])) {
-                    $scStmt = $db->prepare("
-                        SELECT c.id, c.parent_id 
-                        FROM shop_categories c 
-                        LEFT JOIN shop_category_translations t ON c.id = t.category_id 
-                        WHERE (
-                            c.slug = ? OR c.slug = ? OR c.slug = ? OR LOWER(t.name) = LOWER(?) OR LOWER(t.name) = LOWER(?)
-                        )
-                        LIMIT 1
-                    ");
-                    $scStmt->execute([$subPrimarySlug, $subCombinedSlug, $subEsSlug, $subEs, $subKey]);
-                    $subRow = $scStmt->fetch(PDO::FETCH_ASSOC);
+                    $subSlugsToSearch = array_unique(array_filter([
+                        slugify($subKey),
+                        slugify($subEs),
+                        slugify($catEs . '-' . $subEs),
+                        slugify($catKey . '-' . $subKey),
+                        slugify($catKey . '-' . $subEs),
+                        slugify($catEs . '-' . $subKey)
+                    ]));
 
-                    if ($subRow) {
-                        $subId = $subRow['id'];
-                        if (empty($subRow['parent_id']) || $subRow['parent_id'] != $mainCatId) {
-                            $updSC = $db->prepare("UPDATE shop_categories SET parent_id = ? WHERE id = ?");
-                            $updSC->execute([$mainCatId, $subId]);
+                    $subCatId = null;
+                    if (!empty($subSlugsToSearch)) {
+                        $placeholders = implode(',', array_fill(0, count($subSlugsToSearch), '?'));
+                        $scStmt = $db->prepare("
+                            SELECT c.id, c.parent_id 
+                            FROM shop_categories c 
+                            LEFT JOIN shop_category_translations t ON c.id = t.category_id 
+                            WHERE (c.parent_id = ? OR c.parent_id IS NULL) AND (
+                                c.slug IN ($placeholders) OR t.name = ? OR t.name = ? OR t.name = ? OR t.name = ?
+                            )
+                            LIMIT 1
+                        ");
+                        $queryParams = array_merge([$mainCatId], $subSlugsToSearch, [$subEs, $subKey, $subEn, $subDe]);
+                        $scStmt->execute($queryParams);
+                        $subRow = $scStmt->fetch(PDO::FETCH_ASSOC);
+
+                        if ($subRow) {
+                            $subCatId = $subRow['id'];
+                            if (empty($subRow['parent_id']) || $subRow['parent_id'] != $mainCatId) {
+                                $updSC = $db->prepare("UPDATE shop_categories SET parent_id = ? WHERE id = ?");
+                                $updSC->execute([$mainCatId, $subCatId]);
+                            }
                         }
-                    } else {
+                    }
+
+                    if (!$subCatId) {
+                        $primarySubSlug = !empty($subKey) ? slugify($subKey) : slugify($catEs . '-' . $subEs);
                         $insSC = $db->prepare("INSERT INTO shop_categories (parent_id, slug, display_order, is_active, created_at) VALUES (?, ?, 10, 1, ?)");
-                        $insSC->execute([$mainCatId, $subPrimarySlug, $now]);
-                        $subId = $db->lastInsertId();
+                        $insSC->execute([$mainCatId, $primarySubSlug, $now]);
+                        $subCatId = $db->lastInsertId();
                         $createdSubcategories++;
                     }
-                    $subCatCache[$subCatCacheKey] = $subId;
+                    $subCatCache[$subCatCacheKey] = $subCatId;
                 }
                 $subCatId = $subCatCache[$subCatCacheKey];
 
@@ -485,9 +546,18 @@ if ($action === 'execute') {
             // E. Rule 4: Upsert Translations for ES, EN, DE
             $fmt = trim(get_row_val($r, ['format', 'formato']));
             $langsMap = [
-                'es' => ['name' => $nameEs, 'desc' => trim(get_row_val($r, ['description_es', 'descripcion_es']))],
-                'en' => ['name' => trim(get_row_val($r, ['name_en', 'nombre_en'])), 'desc' => trim(get_row_val($r, ['description_en', 'descripcion_en']))],
-                'de' => ['name' => trim(get_row_val($r, ['name_de', 'nombre_de'])), 'desc' => trim(get_row_val($r, ['description_de', 'descripcion_de']))]
+                'es' => [
+                    'name' => $nameEs,
+                    'desc' => trim(get_row_val($r, ['description_es', 'descripcion_es', 'desc_es', 'description', 'descripcion']))
+                ],
+                'en' => [
+                    'name' => trim(get_row_val($r, ['name_en', 'nombre_en', 'title_en', 'titulo_en'])),
+                    'desc' => trim(get_row_val($r, ['description_en', 'descripcion_en', 'desc_en']))
+                ],
+                'de' => [
+                    'name' => trim(get_row_val($r, ['name_de', 'nombre_de', 'title_de', 'titulo_de'])),
+                    'desc' => trim(get_row_val($r, ['description_de', 'descripcion_de', 'desc_de']))
+                ]
             ];
 
             foreach ($langsMap as $langCode => $tData) {
@@ -495,19 +565,17 @@ if ($action === 'execute') {
                 $tDesc = trim($tData['desc']);
                 if (empty($tName) && $langCode !== 'es') continue;
 
-                $tUpd = $db->prepare("
-                    UPDATE shop_product_translations SET 
-                        name = ?, description = ?, format_text = ? 
-                    WHERE product_id = ? AND language = ?
-                ");
-                $tUpd->execute([$tName, $tDesc, $fmt, $prodId, $langCode]);
+                $chkT = $db->prepare("SELECT id, name, description, format_text FROM shop_product_translations WHERE product_id = ? AND language = ?");
+                $chkT->execute([$prodId, $langCode]);
+                $existingT = $chkT->fetch(PDO::FETCH_ASSOC);
 
-                if ($tUpd->rowCount() === 0) {
-                    $tIns = $db->prepare("
-                        INSERT INTO shop_product_translations (
-                            product_id, language, name, description, format_text
-                        ) VALUES (?, ?, ?, ?, ?)
-                    ");
+                if ($existingT) {
+                    if ($existingT['name'] !== $tName || ($existingT['description'] ?? '') !== $tDesc || ($existingT['format_text'] ?? '') !== $fmt) {
+                        $tUpd = $db->prepare("UPDATE shop_product_translations SET name = ?, description = ?, format_text = ? WHERE id = ?");
+                        $tUpd->execute([$tName, $tDesc, $fmt, $existingT['id']]);
+                    }
+                } else {
+                    $tIns = $db->prepare("INSERT INTO shop_product_translations (product_id, language, name, description, format_text) VALUES (?, ?, ?, ?, ?)");
                     $tIns->execute([$prodId, $langCode, $tName, $tDesc, $fmt]);
                 }
             }

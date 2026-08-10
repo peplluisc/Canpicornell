@@ -126,9 +126,16 @@ if ($method === 'POST') {
                 if (isset($translations[$lang]) && !empty(trim($translations[$lang]['name'] ?? ''))) {
                     $name = trim($translations[$lang]['name']);
                     
-                    $t_upd = $db->prepare("UPDATE shop_category_translations SET name = ? WHERE category_id = ? AND language = ?");
-                    $t_upd->execute([$name, $category_id, $lang]);
-                    if ($t_upd->rowCount() === 0) {
+                    $chkT = $db->prepare("SELECT id, name FROM shop_category_translations WHERE category_id = ? AND language = ?");
+                    $chkT->execute([$category_id, $lang]);
+                    $existingT = $chkT->fetch(PDO::FETCH_ASSOC);
+
+                    if ($existingT) {
+                        if ($existingT['name'] !== $name) {
+                            $t_upd = $db->prepare("UPDATE shop_category_translations SET name = ? WHERE id = ?");
+                            $t_upd->execute([$name, $existingT['id']]);
+                        }
+                    } else {
                         $t_ins = $db->prepare("INSERT INTO shop_category_translations (category_id, language, name) VALUES (?, ?, ?)");
                         $t_ins->execute([$category_id, $lang, $name]);
                     }

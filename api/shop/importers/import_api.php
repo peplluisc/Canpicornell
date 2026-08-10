@@ -213,13 +213,25 @@ if ($action === 'save') {
         }
 
         // Save Translation
-        $t_upd = $db->prepare("
-            UPDATE shop_product_translations SET
-                name = ?, description = ?, format_text = ?, source_url = ?
-            WHERE product_id = ? AND language = ?
-        ");
-        $t_upd->execute([$name, $description, $format_text, $source_url, $product_id, $language]);
-        if ($t_upd->rowCount() === 0) {
+        $chkT = $db->prepare("SELECT id, name, description, format_text, source_url FROM shop_product_translations WHERE product_id = ? AND language = ?");
+        $chkT->execute([$product_id, $language]);
+        $existingT = $chkT->fetch(PDO::FETCH_ASSOC);
+
+        if ($existingT) {
+            if (
+                $existingT['name'] !== $name ||
+                ($existingT['description'] ?? '') !== $description ||
+                ($existingT['format_text'] ?? '') !== $format_text ||
+                ($existingT['source_url'] ?? '') !== $source_url
+            ) {
+                $t_upd = $db->prepare("
+                    UPDATE shop_product_translations SET
+                        name = ?, description = ?, format_text = ?, source_url = ?
+                    WHERE id = ?
+                ");
+                $t_upd->execute([$name, $description, $format_text, $source_url, $existingT['id']]);
+            }
+        } else {
             $t_ins = $db->prepare("
                 INSERT INTO shop_product_translations (
                     product_id, language, name, description, format_text, source_url

@@ -70,9 +70,16 @@ if ($method === 'POST') {
 
         if ($global_margin !== null) {
             $formatted_margin = number_format($global_margin, 2, '.', '');
-            $upd = $db->prepare("UPDATE shop_settings SET setting_value = ?, updated_at = ? WHERE setting_key = 'global_margin_percent'");
-            $upd->execute([$formatted_margin, $now]);
-            if ($upd->rowCount() === 0) {
+            $chkS = $db->prepare("SELECT setting_value FROM shop_settings WHERE setting_key = 'global_margin_percent'");
+            $chkS->execute();
+            $existingVal = $chkS->fetchColumn();
+
+            if ($existingVal !== false) {
+                if ($existingVal !== $formatted_margin) {
+                    $upd = $db->prepare("UPDATE shop_settings SET setting_value = ?, updated_at = ? WHERE setting_key = 'global_margin_percent'");
+                    $upd->execute([$formatted_margin, $now]);
+                }
+            } else {
                 $ins = $db->prepare("INSERT INTO shop_settings (setting_key, setting_value, updated_at) VALUES ('global_margin_percent', ?, ?)");
                 $ins->execute([$formatted_margin, $now]);
             }

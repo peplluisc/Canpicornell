@@ -205,13 +205,26 @@ if ($method === 'POST') {
                     $t_add = trim($translations[$lang]['additional_information'] ?? '');
                     $t_src = trim($translations[$lang]['source_url'] ?? '');
 
-                    $t_upd = $db->prepare("
-                        UPDATE shop_product_translations SET
-                            name = ?, description = ?, format_text = ?, additional_information = ?, source_url = ?
-                        WHERE product_id = ? AND language = ?
-                    ");
-                    $t_upd->execute([$t_name, $t_desc, $t_fmt, $t_add, $t_src, $product_id, $lang]);
-                    if ($t_upd->rowCount() === 0) {
+                    $chkT = $db->prepare("SELECT id, name, description, format_text, additional_information, source_url FROM shop_product_translations WHERE product_id = ? AND language = ?");
+                    $chkT->execute([$product_id, $lang]);
+                    $existingT = $chkT->fetch(PDO::FETCH_ASSOC);
+
+                    if ($existingT) {
+                        if (
+                            $existingT['name'] !== $t_name ||
+                            ($existingT['description'] ?? '') !== $t_desc ||
+                            ($existingT['format_text'] ?? '') !== $t_fmt ||
+                            ($existingT['additional_information'] ?? '') !== $t_add ||
+                            ($existingT['source_url'] ?? '') !== $t_src
+                        ) {
+                            $t_upd = $db->prepare("
+                                UPDATE shop_product_translations SET
+                                    name = ?, description = ?, format_text = ?, additional_information = ?, source_url = ?
+                                WHERE id = ?
+                            ");
+                            $t_upd->execute([$t_name, $t_desc, $t_fmt, $t_add, $t_src, $existingT['id']]);
+                        }
+                    } else {
                         $t_ins = $db->prepare("
                             INSERT INTO shop_product_translations (
                                 product_id, language, name, description, format_text, additional_information, source_url
