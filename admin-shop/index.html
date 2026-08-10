@@ -802,6 +802,37 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIRMACIÓN CAN PICORNELL CART BUILDER -->
+    <div id="modal-cart-builder-confirm" class="modal-backdrop" style="display: none;">
+        <div class="modal-container" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 style="font-family: 'Outfit'; color:var(--primary); display:flex; align-items:center; gap:8px; font-size:1.15rem;">
+                    <i class="fa-solid fa-basket-shopping" style="color:var(--accent);"></i> Preparar cesta El Corte Inglés
+                </h3>
+                <button class="btn btn-secondary btn-sm" onclick="closeCartBuilderConfirmModal()">&times;</button>
+            </div>
+            <div style="padding:1rem 0;">
+                <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:1rem; margin-bottom:1rem;">
+                    <div style="font-size:0.95rem; margin-bottom:6px; color:var(--text-main);">Pedido: <strong id="cb-confirm-order-ref" style="color:var(--primary);"></strong></div>
+                    <div style="font-size:0.9rem; color:var(--text-muted);">Referencias: <strong id="cb-confirm-refs" style="color:var(--text-main);">0</strong></div>
+                    <div style="font-size:0.9rem; color:var(--text-muted);">Unidades totales: <strong id="cb-confirm-units" style="color:var(--text-main);">0</strong></div>
+                </div>
+                <p style="font-size:0.9rem; color:var(--text-muted); line-height:1.4; margin-bottom:0.75rem;">
+                    La cesta actual de El Corte Inglés será sincronizada para que coincida exactamente con este pedido.
+                </p>
+                <div id="cb-confirm-warning" style="display:none; background:#fffbeb; border:1px solid #fde68a; color:#92400e; padding:10px; border-radius:8px; font-size:0.85rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Cart Builder no detectado. Asegúrate de tener activa la extensión Chrome Can Picornell Cart Builder.
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid var(--border-color); padding-top:1rem;">
+                <button class="btn btn-secondary" onclick="closeCartBuilderConfirmModal()">Cancelar</button>
+                <button id="btn-confirm-prepare-eci" class="btn btn-accent" onclick="confirmPrepareEciCart()">
+                    <i class="fa-solid fa-basket-shopping"></i> Preparar cesta
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL PRODUCTO -->
     <div id="modal-product" class="modal-backdrop" style="display: none;">
         <div class="modal-container">
@@ -1202,7 +1233,26 @@
                 actionButtonsHtml += `<button class="btn btn-accent" onclick="transitionOrderStatus('mark_paid')"><i class="fa-solid fa-money-bill-check"></i> Marcar Como Pagado</button>`;
             }
 
+            const validEciItems = validateAndConsolidateOrderItems(o.items || []);
+            let cartBuilderBtnHtml = '';
+            if (validEciItems.length > 0) {
+                const connBadgeClass = window.cartBuilderConnected ? 'badge-success' : 'badge-warning';
+                const connBadgeText = window.cartBuilderConnected ? 'Cart Builder conectado' : 'Cart Builder no detectado';
+                cartBuilderBtnHtml = `
+                    <div style="display:inline-flex; align-items:center; gap:8px;">
+                        <span id="cb-connection-badge" class="badge ${connBadgeClass}" style="font-size:0.8rem;">
+                            <i class="fa-solid ${window.cartBuilderConnected ? 'fa-plug-circle-check' : 'fa-plug-circle-xmark'}"></i> ${connBadgeText}
+                        </span>
+                        <button class="btn btn-secondary" title="Preparar cesta en super" onclick="prepareEciCart(activeOrderDetail)">
+                            <i class="fa-solid fa-basket-shopping" style="color:var(--accent);"></i> Preparar cesta El Corte Inglés
+                        </button>
+                    </div>
+                `;
+            }
+
             container.innerHTML = `
+                <div id="cb-notification-banner" style="display:none;"></div>
+
                 <div style="display:flex; justify-content:space-between; align-items:center; background:#f1f5f9; padding:1rem; border-radius:8px; margin-bottom:1rem;">
                     <div>
                         <h4 style="font-size:1.1rem; color:var(--primary);">${o.guest_name} (${o.guest_email})</h4>
@@ -1251,11 +1301,13 @@
                     <div style="font-size:1.2rem; font-weight:700; color:var(--primary);">
                         Importe Total: ${o.total_formatted}
                     </div>
-                    <div style="display:flex; gap:8px;">
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        ${cartBuilderBtnHtml}
                         ${actionButtonsHtml}
                     </div>
                 </div>
             `;
+            checkCartBuilderConnection();
         }
 
         function updateOrderItemQty(itemId, newQty, unitCents) {
@@ -2313,6 +2365,147 @@
                 } else alert(data.error);
             });
         }
+
+        // ------------------------------------------------------------------
+        // CAN PICORNELL CART BUILDER EXTENSION BRIDGE INTEGRATION
+        // ------------------------------------------------------------------
+        window.cartBuilderConnected = false;
+        window.activeCartBuilderPayload = null;
+
+        function checkCartBuilderConnection() {
+            window.dispatchEvent(new CustomEvent("canpicornell:cart-builder-ping"));
+        }
+
+        window.addEventListener("canpicornell:cart-builder-pong", () => {
+            window.cartBuilderConnected = true;
+            updateCartBuilderStatusUI();
+        });
+
+        window.addEventListener("canpicornell:cart-builder-status", (event) => {
+            const detail = event.detail || {};
+            const ref = detail.order_reference || '';
+            const status = detail.status || '';
+            const msg = detail.message || '';
+
+            if (status === 'accepted') {
+                showCartBuilderNotification('success', `Pedido ${ref} enviado a Can Picornell Cart Builder. La preparación continuará en Chrome.`);
+            } else if (status === 'extension_not_available') {
+                showCartBuilderNotification('warning', `Cart Builder no disponible para ${ref}: ${msg}`);
+            } else if (status === 'invalid_order') {
+                showCartBuilderNotification('danger', `Pedido ${ref} no válido para Cart Builder: ${msg}`);
+            } else if (status === 'completed') {
+                showCartBuilderNotification('success', `Cesta de pedido ${ref} preparada completamente en El Corte Inglés.`);
+            } else if (status === 'completed_with_errors') {
+                showCartBuilderNotification('warning', `Cesta de pedido ${ref} preparada con advertencias: ${msg}`);
+            } else if (status === 'cancelled') {
+                showCartBuilderNotification('info', `Preparación de cesta cancelada para ${ref}.`);
+            }
+        });
+
+        function updateCartBuilderStatusUI() {
+            const badge = document.getElementById('cb-connection-badge');
+            if (badge) {
+                if (window.cartBuilderConnected) {
+                    badge.className = 'badge badge-success';
+                    badge.innerHTML = '<i class="fa-solid fa-plug-circle-check"></i> Cart Builder conectado';
+                } else {
+                    badge.className = 'badge badge-warning';
+                    badge.innerHTML = '<i class="fa-solid fa-plug-circle-xmark"></i> Cart Builder no detectado';
+                }
+            }
+        }
+
+        function showCartBuilderNotification(type, text) {
+            const container = document.getElementById('cb-notification-banner');
+            if (container) {
+                const bg = type === 'success' ? '#f0fdf4' : (type === 'danger' ? '#fef2f2' : '#fffbeb');
+                const border = type === 'success' ? '#86efac' : (type === 'danger' ? '#fca5a5' : '#fde68a');
+                const color = type === 'success' ? '#166534' : (type === 'danger' ? '#991b1b' : '#92400e');
+                container.style.display = 'block';
+                container.innerHTML = `
+                    <div style="background:${bg}; border:1px solid ${border}; color:${color}; padding:12px; border-radius:8px; margin-bottom:1rem; font-weight:600; font-size:0.9rem; display:flex; justify-content:space-between; align-items:center;">
+                        <span><i class="fa-solid fa-info-circle"></i> ${escapeHtml(text)}</span>
+                        <button onclick="document.getElementById('cb-notification-banner').style.display='none'" style="background:none; border:none; color:inherit; font-size:1.1rem; cursor:pointer;">&times;</button>
+                    </div>
+                `;
+            } else {
+                alert(text);
+            }
+        }
+
+        function validateAndConsolidateOrderItems(items) {
+            if (!Array.isArray(items)) return [];
+            const map = new Map();
+
+            items.forEach(it => {
+                const qty = parseInt(it.quantity || 0);
+                const code = (it.product_code || it.sku || '').trim();
+
+                // Validation rules: product_code must match ^B\d{15}$ and quantity > 0
+                if (qty > 0 && /^B\d{15}$/.test(code)) {
+                    if (map.has(code)) {
+                        map.set(code, map.get(code) + qty);
+                    } else {
+                        map.set(code, qty);
+                    }
+                }
+            });
+
+            const result = [];
+            map.forEach((quantity, product_code) => {
+                result.push({ product_code, quantity });
+            });
+            return result;
+        }
+
+        function prepareEciCart(order) {
+            if (!order) return;
+            const consolidatedItems = validateAndConsolidateOrderItems(order.items || []);
+
+            if (consolidatedItems.length === 0) {
+                alert('El pedido no contiene productos con product_code de El Corte Inglés válido (^B\\d{15}$).');
+                return;
+            }
+
+            let totalUnits = 0;
+            consolidatedItems.forEach(i => totalUnits += i.quantity);
+
+            window.activeCartBuilderPayload = {
+                version: 1,
+                order_reference: order.order_number,
+                items: consolidatedItems
+            };
+
+            document.getElementById('cb-confirm-order-ref').textContent = order.order_number;
+            document.getElementById('cb-confirm-refs').textContent = consolidatedItems.length;
+            document.getElementById('cb-confirm-units').textContent = totalUnits;
+
+            const warningBox = document.getElementById('cb-confirm-warning');
+            if (warningBox) {
+                warningBox.style.display = window.cartBuilderConnected ? 'none' : 'block';
+            }
+
+            document.getElementById('modal-cart-builder-confirm').style.display = 'flex';
+        }
+
+        function closeCartBuilderConfirmModal() {
+            document.getElementById('modal-cart-builder-confirm').style.display = 'none';
+        }
+
+        function confirmPrepareEciCart() {
+            closeCartBuilderConfirmModal();
+            if (!window.activeCartBuilderPayload) return;
+
+            window.dispatchEvent(
+                new CustomEvent("canpicornell:prepare-eci-cart", {
+                    detail: window.activeCartBuilderPayload
+                })
+            );
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkCartBuilderConnection();
+        });
     </script>
 </body>
 </html>

@@ -83,7 +83,7 @@ if ($method === 'GET') {
                     i.id AS item_id, i.product_id, i.product_name_snapshot,
                     i.quantity, i.unit_price_cents, i.total_price_cents,
                     i.is_purchased, COALESCE(i.purchase_status, 'PENDING') AS purchase_status, i.notes,
-                    p.sku, p.brand, p.image_url, t.format_text
+                    p.sku, p.sku AS product_code, p.brand, p.image_url, t.format_text
                 FROM shop_order_items i
                 LEFT JOIN shop_products p ON i.product_id = p.id
                 LEFT JOIN shop_product_translations t ON p.id = t.product_id AND t.language = 'es'
